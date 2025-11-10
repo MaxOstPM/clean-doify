@@ -5,6 +5,7 @@ import SwiftUI
 public extension DesignSystem {
     /// Consistent spacing scale used for padding and gaps across the UI.
     enum Spacing: CGFloat, CaseIterable, Sendable {
+        case xTight = 4
         case tight = 8
         case small = 16
         case medium = 24
