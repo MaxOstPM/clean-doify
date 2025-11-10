@@ -2,23 +2,21 @@ import SwiftUI
 
 // MARK: - Spacing Tokens
 
-/// Consistent spacing scale used for padding and gaps across the UI.
-public enum Spacing {
-    case tight, small, medium, large, xl
+public extension DesignSystem {
+    /// Consistent spacing scale used for padding and gaps across the UI.
+    enum Spacing: CGFloat, CaseIterable, Sendable {
+        case tight = 8
+        case small = 16
+        case medium = 24
+        case large = 32
+        case xl = 48
 
-    /// Numeric spacing value in points.
-    public var value: CGFloat {
-        switch self {
-        case .tight:
-            return 8
-        case .small:
-            return 16
-        case .medium:
-            return 24
-        case .large:
-            return 32
-        case .xl:
-            return 48
+        /// Numeric spacing value in points.
+        public var value: CGFloat { rawValue }
+
+        /// Convenience edge insets applying the same spacing to each edge.
+        public var insets: EdgeInsets {
+            EdgeInsets(top: value, leading: value, bottom: value, trailing: value)
         }
     }
 }
