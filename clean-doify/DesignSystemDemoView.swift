@@ -271,16 +271,8 @@ private struct ColorSwatch: View {
     private var accessibilityDescription: String {
         #if os(iOS)
         let trait = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
-        if let uiColor = UIColor(descriptor.color)?.resolvedColor(with: trait) {
-            var hue: CGFloat = 0
-            var saturation: CGFloat = 0
-            var brightness: CGFloat = 0
-            var alpha: CGFloat = 0
-            uiColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-            let hueDegrees = Int(hue * 360)
-            let saturationPercent = Int(saturation * 100)
-            let brightnessPercent = Int(brightness * 100)
-            return "Hue \(hueDegrees)°, Sat \(saturationPercent)%, Brightness \(brightnessPercent)%"
+        if let description = descriptor.color.hsbDescription(in: trait) {
+            return "Hue \(description.hue)°, Sat \(description.saturation)%, Brightness \(description.brightness)%"
         }
         #endif
         return descriptor.detail
