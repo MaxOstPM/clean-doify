@@ -247,31 +247,4 @@ public enum DesignColor {
         )
     }
 
-    // MARK: CAD Theme Tokens
-
-    public enum CAD {
-        /// Title primary text color (main headings).
-        public static let titlePrimary = Color(
-            light: .fromHSL(hue: 210, saturation: 30, lightness: 25),
-            dark: .fromHSL(hue: 0, saturation: 0, lightness: 95)
-        )
-
-        /// Title secondary text color for supporting headings.
-        public static let titleSecondary = Color(
-            light: .fromHSL(hue: 210, saturation: 35, lightness: 55),
-            dark: .fromHSL(hue: 210, saturation: 55, lightness: 72)
-        )
-
-        /// Subtitle text color (body content).
-        public static let subtitle = Color(
-            light: .fromHSL(hue: 210, saturation: 20, lightness: 50),
-            dark: .fromHSL(hue: 0, saturation: 0, lightness: 75)
-        )
-
-        /// Subtitle muted text color for captions and helper text.
-        public static let subtitleMuted = Color(
-            light: .fromHSL(hue: 210, saturation: 15, lightness: 65),
-            dark: .fromHSL(hue: 0, saturation: 0, lightness: 60)
-        )
-    }
 }

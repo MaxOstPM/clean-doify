@@ -27,14 +27,11 @@ struct DesignSystemDemoView: View {
         .init(name: "Status / Failure", color: DesignColor.Status.failure, detail: "Failure state"),
         .init(name: "Status / Canceled", color: DesignColor.Status.canceled, detail: "Canceled state"),
         .init(name: "Status / In Progress", color: DesignColor.Status.inProgress, detail: "In-progress state"),
-        .init(name: "Status / Idle", color: DesignColor.Status.idle, detail: "Idle state"),
-        .init(name: "CAD / Title Primary", color: DesignColor.CAD.titlePrimary, detail: "Primary headings"),
-        .init(name: "CAD / Title Secondary", color: DesignColor.CAD.titleSecondary, detail: "Secondary headings"),
-        .init(name: "CAD / Subtitle", color: DesignColor.CAD.subtitle, detail: "Body text"),
-        .init(name: "CAD / Subtitle Muted", color: DesignColor.CAD.subtitleMuted, detail: "Helper text")
+        .init(name: "Status / Idle", color: DesignColor.Status.idle, detail: "Idle state")
     ]
 
     private let spacingTokens: [SpacingToken] = [
+        .init(name: "xTight", token: .xTight, axis: .horizontal),
         .init(name: "tight", token: .tight, axis: .vertical),
         .init(name: "small", token: .small, axis: .horizontal),
         .init(name: "medium", token: .medium, axis: .vertical),
@@ -61,21 +58,18 @@ struct DesignSystemDemoView: View {
                 SectionCard(title: "Typography") {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                         Text("Section Heading")
-                            .font(DesignSystem.Typography.sectionHeading)
-                            .foregroundStyle(DesignColor.CAD.titlePrimary)
+                            .textStyle(.titlePrimary)
 
                         Text("Primary Title Style")
-                            .font(DesignSystem.Typography.title)
-                            .foregroundStyle(DesignColor.CAD.titleSecondary)
+                            .textStyle(.titleSecondary)
 
                         Text("Supporting body copy lives here. It uses the description font with relaxed line height so multi-line text remains legible across content widths.")
-                            .font(DesignSystem.Typography.description)
-                            .foregroundStyle(DesignColor.CAD.subtitle)
+                            .textStyle(.body)
 
                         Text("Status Label")
-                            .font(DesignSystem.Typography.statusLabel)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .textStyle(.statusLabel)
+                            .padding(.horizontal, DesignSystem.Spacing.tight.value)
+                            .padding(.vertical, DesignSystem.Spacing.xTight.value)
                             .background(
                                 Capsule()
                                     .fill(DesignColor.Surface.muted)
@@ -88,7 +82,6 @@ struct DesignSystemDemoView: View {
                                         animationDuration: 2.2
                                     )
                             )
-                            .foregroundStyle(DesignColor.CAD.titlePrimary)
                     }
                 }
 
@@ -104,12 +97,10 @@ struct DesignSystemDemoView: View {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("shimmer()")
-                                .font(DesignSystem.Typography.title)
-                                .foregroundStyle(DesignColor.CAD.titleSecondary)
+                                .textStyle(.titleSecondary)
 
                             Text("A sweeping surface shimmer that honors Reduce Motion and can be retriggered on demand.")
-                                .font(DesignSystem.Typography.description)
-                                .foregroundStyle(DesignColor.CAD.subtitle)
+                                .textStyle(.body)
 
                             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.background)
@@ -125,12 +116,10 @@ struct DesignSystemDemoView: View {
                                 .overlay(alignment: .leading) {
                                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                                         Text("Task")
-                                            .font(DesignSystem.Typography.title)
-                                            .foregroundStyle(DesignColor.CAD.titlePrimary)
+                                            .textStyle(.titleSecondary)
 
                                         Text("Shimmering surfaces highlight active workstreams without overwhelming the rest of the UI.")
-                                            .font(DesignSystem.Typography.description)
-                                            .foregroundStyle(DesignColor.CAD.subtitle)
+                                            .textStyle(.body)
                                     }
                                     .padding(DesignSystem.Spacing.medium.value)
                                 }
@@ -141,12 +130,10 @@ struct DesignSystemDemoView: View {
 
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("gridShimmer()")
-                                .font(DesignSystem.Typography.title)
-                                .foregroundStyle(DesignColor.CAD.titleSecondary)
+                                .textStyle(.titleSecondary)
 
                             Text("A reusable skeleton grid with randomized line direction and pulsing anchor dots.")
-                                .font(DesignSystem.Typography.description)
-                                .foregroundStyle(DesignColor.CAD.subtitle)
+                                .textStyle(.body)
 
                             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.Surface.muted)
@@ -166,12 +153,10 @@ struct DesignSystemDemoView: View {
 
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("Manual trigger")
-                                .font(DesignSystem.Typography.title)
-                                .foregroundStyle(DesignColor.CAD.titleSecondary)
+                                .textStyle(.titleSecondary)
 
                             Text("Use a binding-driven activation to fire the shimmer on demand, such as after a pull-to-refresh or button tap.")
-                                .font(DesignSystem.Typography.description)
-                                .foregroundStyle(DesignColor.CAD.subtitle)
+                                .textStyle(.body)
 
                             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.Surface.card)
@@ -189,15 +174,40 @@ struct DesignSystemDemoView: View {
                                 isManualGridShimmerActive = true
                             } label: {
                                 Label("Replay grid shimmer", systemImage: "sparkles")
-                                    .font(DesignSystem.Typography.statusLabel)
+                                    .textStyle(.statusLabel)
                                     .padding(.horizontal, DesignSystem.Spacing.tight.value)
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, DesignSystem.Spacing.tight.value)
                                     .background(
                                         Capsule()
                                             .fill(DesignColor.accent.opacity(0.12))
                                     )
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        Divider()
+                            .background(DesignColor.border)
+
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+                            Text("animatedBorder()")
+                                .textStyle(.titleSecondary)
+
+                            Text("Emphasize active states with a pulsing border that adapts to Reduce Motion preferences.")
+                                .textStyle(.body)
+
+                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
+                                .fill(DesignColor.Surface.card)
+                                .frame(height: 120)
+                                .overlay(alignment: .topLeading) {
+                                    Text("Active Workflow")
+                                        .textStyle(.titleSecondary)
+                                        .padding(DesignSystem.Spacing.small.insets)
+                                }
+                                .animatedBorder(
+                                    color: DesignColor.Status.inProgress,
+                                    lineWidth: DesignSystem.BorderWidth.medium.value,
+                                    cornerRadius: DesignSystem.CornerRadius.xl.value
+                                )
                         }
                     }
                 }
@@ -214,8 +224,6 @@ struct DesignSystemDemoView: View {
 }
 
 private struct SectionCard<Content: View>: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     let title: String
     let content: Content
 
@@ -225,12 +233,9 @@ private struct SectionCard<Content: View>: View {
     }
 
     var body: some View {
-        let shadow = DesignSystem.Shadow.md.specification(for: colorScheme)
-
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
             Text(title)
-                .font(DesignSystem.Typography.sectionHeading)
-                .foregroundStyle(DesignColor.CAD.titlePrimary)
+                .textStyle(.titlePrimary)
             content
         }
         .padding(DesignSystem.Spacing.medium.insets)
@@ -239,7 +244,7 @@ private struct SectionCard<Content: View>: View {
             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                 .fill(DesignColor.Surface.card)
         )
-        .shadow(color: shadow.resolvedColor, radius: shadow.radius, x: shadow.x, y: shadow.y)
+        .designShadow(.md)
     }
 }
 
@@ -260,12 +265,10 @@ private struct ColorSwatch: View {
                 )
 
             Text(descriptor.name)
-                .font(DesignSystem.Typography.title)
-                .foregroundStyle(DesignColor.CAD.titleSecondary)
+                .textStyle(.titleSecondary)
 
             Text(accessibilityDescription)
-                .font(DesignSystem.Typography.statusLabel)
-                .foregroundStyle(DesignColor.CAD.subtitleMuted)
+                .textStyle(.subtitleMuted)
         }
     }
 
@@ -321,8 +324,7 @@ private struct SpacingTokenView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
             Text("\(token.name) – \(Int(token.value))pt")
-                .font(DesignSystem.Typography.title)
-                .foregroundStyle(DesignColor.CAD.titleSecondary)
+                .textStyle(.titleSecondary)
 
             Group {
                 switch token.axis {

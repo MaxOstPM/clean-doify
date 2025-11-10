@@ -6,7 +6,7 @@ public extension DesignSystem {
     /// Standardized corner radius values expressed in points.
     enum CornerRadius: CaseIterable, Sendable {
         case sm
-        case `default`
+        case base
         case md
         case lg
         case xl
@@ -17,7 +17,7 @@ public extension DesignSystem {
             switch self {
             case .sm:
                 return 6
-            case .default:
+            case .base:
                 return 8
             case .md:
                 return 12
