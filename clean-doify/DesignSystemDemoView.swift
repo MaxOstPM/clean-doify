@@ -243,6 +243,7 @@ private struct SectionCard<Content: View>: View {
     }
 }
 
+@MainActor
 private struct ColorSwatch: View {
     @Environment(\.colorScheme) private var colorScheme
 
