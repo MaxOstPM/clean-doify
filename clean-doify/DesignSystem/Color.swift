@@ -63,7 +63,47 @@ public extension Color {
         self = light
         #endif
     }
+
+    #if canImport(UIKit)
+    /// Describes the color's hue, saturation, and brightness values for a given trait collection.
+    /// Falls back to ``nil`` if the underlying color cannot provide HSB components (e.g. pattern images).
+    @MainActor
+    func hsbDescription(in traitCollection: UITraitCollection) -> HSBDescription? {
+        let resolvedColor = UIColor(self).resolvedColor(with: traitCollection)
+
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        guard resolvedColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) else {
+            return nil
+        }
+
+        return HSBDescription(
+            hue: Int((hue * 360).rounded()),
+            saturation: Int((saturation * 100).rounded()),
+            brightness: Int((brightness * 100).rounded())
+        )
+    }
+    #endif
 }
+
+#if canImport(UIKit)
+public extension Color {
+    struct HSBDescription: Hashable {
+        public let hue: Int
+        public let saturation: Int
+        public let brightness: Int
+
+        public init(hue: Int, saturation: Int, brightness: Int) {
+            self.hue = hue
+            self.saturation = saturation
+            self.brightness = brightness
+        }
+    }
+}
+#endif
 
 // MARK: - Semantic Colors
 
