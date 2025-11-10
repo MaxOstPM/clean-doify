@@ -1,82 +1,83 @@
 import SwiftUI
 
-public extension DesignSystem {
-    enum ShadowStyle {
-        case sm, technical, md, elevated, cta, glow, inner
+// MARK: - Shadow Tokens
+
+/// Specifications describing a drop shadow appearance.
+public struct ShadowSpec {
+    public let radius: CGFloat
+    public let x: CGFloat
+    public let y: CGFloat
+    public let color: Color
+    public let opacity: Double
+
+    /// Convenience color with opacity applied.
+    public var resolvedColor: Color { color.opacity(opacity) }
+}
+
+/// Predefined shadow styles with light and dark variants.
+public enum DesignShadow {
+    case sm, technical, md, elevated, lg, xl, cta, glow, inner
+
+    /// Resolves the shadow spec for the provided color scheme.
+    public func specification(for colorScheme: ColorScheme) -> ShadowSpec {
+        shadow(light: colorScheme != .dark)
     }
 
-    /// Returns the shadow color and geometry for a given style in the specified color scheme.
-    static func shadow(_ style: ShadowStyle, for scheme: ColorScheme) -> (color: Color, radius: CGFloat, x: CGFloat, y: CGFloat) {
-        switch style {
+    /// Returns the shadow spec for the desired interface style.
+    public func shadow(light isLightMode: Bool) -> ShadowSpec {
+        let radius: CGFloat
+        let xOffset: CGFloat
+        let yOffset: CGFloat
+        let schemeColor: Color
+
+        switch self {
         case .sm:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.15)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.05),
-                radius: 2,
-                x: 0,
-                y: 1
-            )
-
+            radius = 2; xOffset = 0; yOffset = 1
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.04)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.20)
         case .technical:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.40)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.12),
-                radius: 8,
-                x: 0,
-                y: 2
-            )
-
+            radius = 8; xOffset = 0; yOffset = 2
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.08)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.40)
         case .md:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.45)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.15),
-                radius: 12,
-                x: 0,
-                y: 4
-            )
-
+            radius = 12; xOffset = 0; yOffset = 4
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.10)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.50)
         case .elevated:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.50)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.18),
-                radius: 16,
-                x: 0,
-                y: 4
-            )
-
+            radius = 16; xOffset = 0; yOffset = 4
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.12)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.60)
+        case .lg:
+            radius = 24; xOffset = 0; yOffset = 8
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.15)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.70)
+        case .xl:
+            radius = 32; xOffset = 0; yOffset = 12
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.18)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.75)
         case .cta:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 27, saturation: 90, lightness: 58, alpha: 0.4)
-                    : Color.fromHSL(hue: 27, saturation: 82, lightness: 52, alpha: 0.3),
-                radius: 12,
-                x: 0,
-                y: 4
-            )
-
+            radius = 12; xOffset = 0; yOffset = 4
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 27, saturation: 65, lightness: 72, alpha: 0.25)
+                : Color.fromHSL(hue: 27, saturation: 70, lightness: 75, alpha: 0.35)
         case .glow:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 210, saturation: 100, lightness: 65, alpha: 0.25)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.15),
-                radius: 16,
-                x: 0,
-                y: 0
-            )
-
+            radius = 16; xOffset = 0; yOffset = 0
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 68, alpha: 0.12)
+                : Color.fromHSL(hue: 210, saturation: 55, lightness: 72, alpha: 0.25)
         case .inner:
-            return (
-                color: scheme == .dark
-                    ? Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.20)
-                    : Color.fromHSL(hue: 210, saturation: 65, lightness: 16, alpha: 0.06),
-                radius: 4,
-                x: 0,
-                y: 2
-            )
+            radius = 4; xOffset = 0; yOffset = 2
+            schemeColor = isLightMode
+                ? Color.fromHSL(hue: 210, saturation: 45, lightness: 50, alpha: 0.04)
+                : Color.fromHSL(hue: 0, saturation: 0, lightness: 0, alpha: 0.20)
         }
+
+        return ShadowSpec(radius: radius, x: xOffset, y: yOffset, color: schemeColor, opacity: 1)
     }
 }

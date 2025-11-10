@@ -1,25 +1,26 @@
 import SwiftUI
 
-public extension DesignSystem {
-    enum Radius {
-        case small, `default`, medium, large, extraLarge, full
+// MARK: - Corner Radius Tokens
 
-        /// Numeric corner radius value in points for each size.
-        public var value: CGFloat {
-            switch self {
-            case .small:
-                return 6
-            case .default:
-                return 8
-            case .medium:
-                return 12
-            case .large:
-                return 16
-            case .extraLarge:
-                return 24
-            case .full:
-                return 9999
-            }
+/// Standardized corner radius values expressed in points.
+public enum CornerRadius {
+    case sm, `default`, md, lg, xl, full
+
+    /// Returns the underlying radius value in points.
+    public var value: CGFloat {
+        switch self {
+        case .sm:
+            return 6
+        case .default:
+            return 8
+        case .md:
+            return 12
+        case .lg:
+            return 16
+        case .xl:
+            return 24
+        case .full:
+            return 9_999
         }
     }
 }

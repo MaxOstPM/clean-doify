@@ -13,7 +13,7 @@ public extension View {
     ///
     /// - Parameters:
     ///   - activation: Strategy controlling how the shimmer is triggered (cooldown or manual binding).
-    ///   - tint: Optional base tint. Defaults to ``DesignSystem`` surface tokens for the active color scheme.
+    ///   - tint: Optional base tint. Defaults to ``DesignColor.Surface`` tokens for the active color scheme.
     ///   - highlightTint: Optional highlight tint for the leading shine.
     ///   - cornerRadius: Optional corner radius applied to the shimmer shape.
     ///   - shimmerWidthRatio: Relative width of the sweeping highlight compared to the container width.
@@ -57,9 +57,9 @@ public extension View {
     func gridShimmer(
         activation: GridShimmerActivation = .cooldown(1.5),
         preferredColumnWidth: CGFloat = 120,
-        spacing: CGFloat = DesignSystem.Spacing.textGap,
-        cornerRadius: CGFloat = DesignSystem.Radius.medium.value,
-        lineWidth: CGFloat = DesignSystem.BorderWidth.thin.value,
+        spacing: CGFloat = Spacing.tight.value,
+        cornerRadius: CGFloat = CornerRadius.md.value,
+        lineWidth: CGFloat = BorderWidth.thin.value,
         animationDuration: TimeInterval = 1.6
     ) -> some View {
         modifier(
@@ -90,8 +90,8 @@ private struct ShimmerModifier: ViewModifier {
         content.overlay {
             ShimmerOverlay(
                 activation: activation,
-                tint: tint ?? DesignSystem.token(.muted, for: colorScheme).opacity(0.55),
-                highlightTint: highlightTint ?? DesignSystem.token(.card, for: colorScheme),
+                tint: tint ?? DesignColor.Surface.muted.opacity(0.55),
+                highlightTint: highlightTint ?? DesignColor.Surface.card,
                 cornerRadius: cornerRadius,
                 shimmerWidthRatio: shimmerWidthRatio,
                 animationDuration: animationDuration,
@@ -324,8 +324,8 @@ private struct GridShimmerModifier: ViewModifier {
                 cornerRadius: cornerRadius,
                 lineWidth: max(lineWidth, 0.5),
                 animationDuration: max(animationDuration, 0.1),
-                baseColor: DesignSystem.token(.muted, for: colorScheme),
-                highlightColor: DesignSystem.token(.card, for: colorScheme),
+                baseColor: DesignColor.Surface.muted,
+                highlightColor: DesignColor.Surface.card,
                 reduceMotion: reduceMotion
             )
             .mask(content)
