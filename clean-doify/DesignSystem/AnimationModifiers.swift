@@ -57,9 +57,9 @@ public extension View {
     func gridShimmer(
         activation: GridShimmerActivation = .cooldown(1.5),
         preferredColumnWidth: CGFloat = 120,
-        spacing: CGFloat = Spacing.tight.value,
-        cornerRadius: CGFloat = CornerRadius.md.value,
-        lineWidth: CGFloat = BorderWidth.thin.value,
+        spacing: CGFloat = DesignSystem.Spacing.tight.value,
+        cornerRadius: CGFloat = DesignSystem.CornerRadius.md.value,
+        lineWidth: CGFloat = DesignSystem.BorderWidth.thin.value,
         animationDuration: TimeInterval = 1.6
     ) -> some View {
         modifier(

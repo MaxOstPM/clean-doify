@@ -35,22 +35,22 @@ struct DesignSystemDemoView: View {
     ]
 
     private let spacingTokens: [SpacingToken] = [
-        .init(name: "tight", value: Spacing.tight.value, axis: .vertical),
-        .init(name: "small", value: Spacing.small.value, axis: .horizontal),
-        .init(name: "medium", value: Spacing.medium.value, axis: .vertical),
-        .init(name: "large", value: Spacing.large.value, axis: .vertical),
-        .init(name: "xl", value: Spacing.xl.value, axis: .horizontal)
+        .init(name: "tight", token: .tight, axis: .vertical),
+        .init(name: "small", token: .small, axis: .horizontal),
+        .init(name: "medium", token: .medium, axis: .vertical),
+        .init(name: "large", token: .large, axis: .vertical),
+        .init(name: "xl", token: .xl, axis: .horizontal)
     ]
 
     private let maxContentWidth: CGFloat = 448
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.large.value) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.large.value) {
                 SectionCard(title: "Color Tokens") {
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.tight.value)],
-                        spacing: Spacing.tight.value
+                        columns: [GridItem(.adaptive(minimum: 140), spacing: DesignSystem.Spacing.tight.value)],
+                        spacing: DesignSystem.Spacing.tight.value
                     ) {
                         ForEach(colorTokens) { descriptor in
                             ColorSwatch(descriptor: descriptor)
@@ -59,7 +59,7 @@ struct DesignSystemDemoView: View {
                 }
 
                 SectionCard(title: "Typography") {
-                    VStack(alignment: .leading, spacing: Spacing.tight.value) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                         Text("Section Heading")
                             .font(DesignSystem.Typography.sectionHeading)
                             .foregroundStyle(DesignColor.CAD.titlePrimary)
@@ -82,9 +82,9 @@ struct DesignSystemDemoView: View {
                                     .gridShimmer(
                                         activation: .cooldown(1.2),
                                         preferredColumnWidth: 72,
-                                        spacing: Spacing.tight.value,
-                                        cornerRadius: CornerRadius.sm.value,
-                                        lineWidth: BorderWidth.thin.value,
+                                        spacing: DesignSystem.Spacing.tight.value,
+                                        cornerRadius: DesignSystem.CornerRadius.sm.value,
+                                        lineWidth: DesignSystem.BorderWidth.thin.value,
                                         animationDuration: 2.2
                                     )
                             )
@@ -93,7 +93,7 @@ struct DesignSystemDemoView: View {
                 }
 
                 SectionCard(title: "Spacing Tokens") {
-                    VStack(alignment: .leading, spacing: Spacing.medium.value) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
                         ForEach(spacingTokens) { token in
                             SpacingTokenView(token: token)
                         }
@@ -101,8 +101,8 @@ struct DesignSystemDemoView: View {
                 }
 
                 SectionCard(title: "Animation Modifiers") {
-                    VStack(alignment: .leading, spacing: Spacing.medium.value) {
-                        VStack(alignment: .leading, spacing: Spacing.tight.value) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("shimmer()")
                                 .font(DesignSystem.Typography.title)
                                 .foregroundStyle(DesignColor.CAD.titleSecondary)
@@ -111,19 +111,19 @@ struct DesignSystemDemoView: View {
                                 .font(DesignSystem.Typography.description)
                                 .foregroundStyle(DesignColor.CAD.subtitle)
 
-                            RoundedRectangle(cornerRadius: CornerRadius.xl.value)
+                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.background)
                                 .frame(height: 140)
                                 .shimmer(
                                     activation: .cooldown(1.8),
                                     tint: DesignColor.Surface.muted.opacity(0.28),
                                     highlightTint: DesignColor.accent,
-                                    cornerRadius: CornerRadius.xl.value,
+                                    cornerRadius: DesignSystem.CornerRadius.xl.value,
                                     shimmerWidthRatio: 0.6,
                                     animationDuration: 1.5
                                 )
                                 .overlay(alignment: .leading) {
-                                    VStack(alignment: .leading, spacing: Spacing.tight.value) {
+                                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                                         Text("Task")
                                             .font(DesignSystem.Typography.title)
                                             .foregroundStyle(DesignColor.CAD.titlePrimary)
@@ -132,14 +132,14 @@ struct DesignSystemDemoView: View {
                                             .font(DesignSystem.Typography.description)
                                             .foregroundStyle(DesignColor.CAD.subtitle)
                                     }
-                                    .padding(Spacing.medium.value)
+                                    .padding(DesignSystem.Spacing.medium.value)
                                 }
                         }
 
                         Divider()
                             .background(DesignColor.border)
 
-                        VStack(alignment: .leading, spacing: Spacing.tight.value) {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("gridShimmer()")
                                 .font(DesignSystem.Typography.title)
                                 .foregroundStyle(DesignColor.CAD.titleSecondary)
@@ -148,15 +148,15 @@ struct DesignSystemDemoView: View {
                                 .font(DesignSystem.Typography.description)
                                 .foregroundStyle(DesignColor.CAD.subtitle)
 
-                            RoundedRectangle(cornerRadius: CornerRadius.xl.value)
+                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.Surface.muted)
                                 .frame(height: 160)
                                 .gridShimmer(
                                     activation: .cooldown(1.8),
                                     preferredColumnWidth: 120,
-                                    spacing: Spacing.tight.value,
-                                    cornerRadius: CornerRadius.md.value,
-                                    lineWidth: BorderWidth.thin.value,
+                                    spacing: DesignSystem.Spacing.tight.value,
+                                    cornerRadius: DesignSystem.CornerRadius.md.value,
+                                    lineWidth: DesignSystem.BorderWidth.thin.value,
                                     animationDuration: 2.6
                                 )
                         }
@@ -164,7 +164,7 @@ struct DesignSystemDemoView: View {
                         Divider()
                             .background(DesignColor.border)
 
-                        VStack(alignment: .leading, spacing: Spacing.tight.value) {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("Manual trigger")
                                 .font(DesignSystem.Typography.title)
                                 .foregroundStyle(DesignColor.CAD.titleSecondary)
@@ -173,15 +173,15 @@ struct DesignSystemDemoView: View {
                                 .font(DesignSystem.Typography.description)
                                 .foregroundStyle(DesignColor.CAD.subtitle)
 
-                            RoundedRectangle(cornerRadius: CornerRadius.xl.value)
+                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                                 .fill(DesignColor.Surface.card)
                                 .frame(height: 120)
                                 .gridShimmer(
                                     activation: .manual(isActive: $isManualGridShimmerActive),
                                     preferredColumnWidth: 110,
-                                    spacing: Spacing.tight.value,
-                                    cornerRadius: CornerRadius.md.value,
-                                    lineWidth: BorderWidth.thin.value,
+                                    spacing: DesignSystem.Spacing.tight.value,
+                                    cornerRadius: DesignSystem.CornerRadius.md.value,
+                                    lineWidth: DesignSystem.BorderWidth.thin.value,
                                     animationDuration: 2.6
                                 )
 
@@ -190,7 +190,7 @@ struct DesignSystemDemoView: View {
                             } label: {
                                 Label("Replay grid shimmer", systemImage: "sparkles")
                                     .font(DesignSystem.Typography.statusLabel)
-                                    .padding(.horizontal, Spacing.tight.value)
+                                    .padding(.horizontal, DesignSystem.Spacing.tight.value)
                                     .padding(.vertical, 8)
                                     .background(
                                         Capsule()
@@ -203,9 +203,9 @@ struct DesignSystemDemoView: View {
                 }
             }
             .frame(maxWidth: maxContentWidth, alignment: .leading)
-            .padding(.horizontal, Spacing.small.value)
-            .padding(.bottom, Spacing.large.value)
-            .padding(.top, Spacing.medium.value)
+            .padding(.horizontal, DesignSystem.Spacing.small.value)
+            .padding(.bottom, DesignSystem.Spacing.large.value)
+            .padding(.top, DesignSystem.Spacing.medium.value)
             .frame(maxWidth: .infinity)
         }
         .background(DesignColor.background.ignoresSafeArea())
@@ -225,18 +225,18 @@ private struct SectionCard<Content: View>: View {
     }
 
     var body: some View {
-        let shadow = DesignShadow.md.specification(for: colorScheme)
+        let shadow = DesignSystem.Shadow.md.specification(for: colorScheme)
 
-        VStack(alignment: .leading, spacing: Spacing.medium.value) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
             Text(title)
                 .font(DesignSystem.Typography.sectionHeading)
                 .foregroundStyle(DesignColor.CAD.titlePrimary)
             content
         }
-        .padding(Spacing.medium.value)
+        .padding(DesignSystem.Spacing.medium.insets)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.xl.value)
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
                 .fill(DesignColor.Surface.card)
         )
         .shadow(color: shadow.resolvedColor, radius: shadow.radius, x: shadow.x, y: shadow.y)
@@ -250,13 +250,13 @@ private struct ColorSwatch: View {
     let descriptor: ColorTokenDescriptor
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.small.value) {
-            RoundedRectangle(cornerRadius: CornerRadius.md.value)
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md.value)
                 .fill(descriptor.color)
                 .frame(height: 72)
                 .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.md.value)
-                        .strokeBorder(DesignColor.border.opacity(0.3), lineWidth: BorderWidth.thin.value)
+                    RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md.value)
+                        .strokeBorder(DesignColor.border.opacity(0.3), lineWidth: DesignSystem.BorderWidth.thin.value)
                 )
 
             Text(descriptor.name)
@@ -302,13 +302,15 @@ private struct SpacingToken: Identifiable {
 
     let id: String
     let name: String
-    let value: CGFloat
+    let token: DesignSystem.Spacing
     let axis: Axis
 
-    init(name: String, value: CGFloat, axis: Axis) {
+    var value: CGFloat { token.value }
+
+    init(name: String, token: DesignSystem.Spacing, axis: Axis) {
         self.id = name
         self.name = name
-        self.value = value
+        self.token = token
         self.axis = axis
     }
 }
@@ -317,7 +319,7 @@ private struct SpacingTokenView: View {
     let token: SpacingToken
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.tight.value) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
             Text("\(token.name) – \(Int(token.value))pt")
                 .font(DesignSystem.Typography.title)
                 .foregroundStyle(DesignColor.CAD.titleSecondary)
