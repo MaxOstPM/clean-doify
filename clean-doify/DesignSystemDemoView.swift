@@ -79,37 +79,36 @@ struct DesignSystemDemoView: View {
                 SectionCard(title: "Animation Modifiers") {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.verticalGap) {
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.textGap) {
-                            Text("animatedBorder()").font(DesignSystem.Typography.title)
+                            Text("shimmer()")
+                                .font(DesignSystem.Typography.title)
                                 .foregroundStyle(DesignSystem.token(.titleSecondary, for: colorScheme))
 
-                            Text("An animated gradient border that responds to Reduce Motion preferences.")
+                            Text("A sweeping surface shimmer that honors Reduce Motion and can be retriggered on demand.")
                                 .font(DesignSystem.Typography.description)
                                 .foregroundStyle(DesignSystem.token(.subtitle, for: colorScheme))
 
                             RoundedRectangle(cornerRadius: DesignSystem.Radius.extraLarge.value)
                                 .fill(DesignSystem.token(.background, for: colorScheme))
                                 .frame(height: 140)
+                                .shimmer(
+                                    activation: .cooldown(1.8),
+                                    tint: DesignSystem.token(.muted, for: colorScheme).opacity(0.28),
+                                    highlightTint: DesignSystem.token(.accent, for: colorScheme),
+                                    cornerRadius: DesignSystem.Radius.extraLarge.value,
+                                    shimmerWidthRatio: 0.6,
+                                    animationDuration: 1.5
+                                )
                                 .overlay(alignment: .leading) {
                                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.textGap) {
                                         Text("Task")
                                             .font(DesignSystem.Typography.title)
                                             .foregroundStyle(DesignSystem.token(.titlePrimary, for: colorScheme))
-                                        Text("Animated borders highlight active workstreams without overwhelming the rest of the UI.")
+                                        Text("Shimmering surfaces highlight active workstreams without overwhelming the rest of the UI.")
                                             .font(DesignSystem.Typography.description)
                                             .foregroundStyle(DesignSystem.token(.subtitle, for: colorScheme))
                                     }
                                     .padding(DesignSystem.Spacing.cardPadding)
                                 }
-                                .animatedBorder(
-                                    colors: [
-                                        DesignSystem.token(.accent, for: colorScheme),
-                                        DesignSystem.token(.primary, for: colorScheme),
-                                        DesignSystem.token(.secondary, for: colorScheme)
-                                    ],
-                                    lineWidth: DesignSystem.BorderWidth.thin.value,
-                                    cornerRadius: DesignSystem.Radius.extraLarge.value,
-                                    animationDuration: 6
-                                )
                         }
 
                         Divider()
@@ -119,7 +118,7 @@ struct DesignSystemDemoView: View {
                             Text("gridShimmer()").font(DesignSystem.Typography.title)
                                 .foregroundStyle(DesignSystem.token(.titleSecondary, for: colorScheme))
 
-                            Text("A reusable skeleton grid for loading states with Reduced Motion support.")
+                            Text("A reusable skeleton grid with randomized line direction and pulsing anchor dots.")
                                 .font(DesignSystem.Typography.description)
                                 .foregroundStyle(DesignSystem.token(.subtitle, for: colorScheme))
 
@@ -231,15 +230,6 @@ private struct ColorSwatch: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: DesignSystem.Radius.medium.value)
                         .strokeBorder(DesignSystem.token(.border, for: colorScheme).opacity(0.3), lineWidth: DesignSystem.BorderWidth.thin.value)
-                )
-                .animatedBorder(
-                    colors: [
-                        DesignSystem.token(.accent, for: colorScheme),
-                        DesignSystem.token(.secondary, for: colorScheme)
-                    ],
-                    lineWidth: DesignSystem.BorderWidth.thin.value,
-                    cornerRadius: DesignSystem.Radius.medium.value,
-                    animationDuration: 7
                 )
 
             Text(token.displayName)
