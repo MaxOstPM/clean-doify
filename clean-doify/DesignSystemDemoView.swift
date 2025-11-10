@@ -1,5 +1,4 @@
 import SwiftUI
-import DesignSystem
 #if os(iOS)
 import UIKit
 #endif
