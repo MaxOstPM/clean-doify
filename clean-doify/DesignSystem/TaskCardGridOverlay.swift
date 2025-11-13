@@ -36,7 +36,7 @@ public struct TaskCardGridOverlay: View {
         lineThickness: CGFloat = 1,
         blurRadius: CGFloat = 0.8,
         glowRadius: CGFloat = 2.5,
-        animationDuration: TimeInterval = 8.0
+        animationDuration: TimeInterval = 3.8
     ) {
         self.statusColor = statusColor
         self.isActive = isActive
@@ -260,11 +260,11 @@ private struct GridAnimationTiming {
 
     init(totalDuration: TimeInterval) {
         let safeTotal = max(totalDuration, 2.0)
-        let maxLineDelay = safeTotal * 0.15
+        let maxLineDelay = safeTotal * 0.25
         let growthWindow = safeTotal * 0.35
         let minDuration = max(0.1, growthWindow * 0.4)
         let maxDuration = max(minDuration + 0.05, growthWindow)
-        let collapseDelay = safeTotal * 0.25
+        let collapseDelay = safeTotal * 0.1
         let collapseVariance = safeTotal * 0.3
         let minCollapseDuration = max(0.15, safeTotal * 0.12)
         let maxCollapseDuration = max(minCollapseDuration + 0.1, safeTotal * 0.35)
