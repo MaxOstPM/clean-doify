@@ -6,6 +6,8 @@ import UIKit
 struct DesignSystemDemoView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var isManualGridShimmerActive = false
+    @State private var isStatusGridAnimating = false
+    @State private var activeStatusIndex = 0
 
     private let colorTokens: [ColorTokenDescriptor] = [
         .init(name: "Primary", color: DesignColor.primary, detail: "Primary brand background"),
@@ -40,6 +42,30 @@ struct DesignSystemDemoView: View {
     ]
 
     private let maxContentWidth: CGFloat = 448
+
+    private let statusDemoStates: [TaskStatusDemoState] = [
+        .init(
+            title: "Review synthesis",
+            detail: "Compile the top takeaways from the workshop notes for the leadership deck.",
+            statusLabel: "In Progress",
+            statusColor: DesignColor.Status.inProgress,
+            actionLabel: "Mark Done"
+        ),
+        .init(
+            title: "System design",
+            detail: "Map the orchestration layer for the new automations grid.",
+            statusLabel: "Today",
+            statusColor: DesignColor.Status.idle,
+            actionLabel: "Start Work"
+        ),
+        .init(
+            title: "Handoff QA",
+            detail: "Verify empty states and grid overlays before sharing the build with QA.",
+            statusLabel: "Done",
+            statusColor: DesignColor.Status.success,
+            actionLabel: "Reopen"
+        )
+    ]
 
     var body: some View {
         ScrollView {
@@ -189,6 +215,37 @@ struct DesignSystemDemoView: View {
                             .background(DesignColor.border)
 
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+                            Text("TaskStatusGridAnimation")
+                                .textStyle(.titleSecondary)
+
+                            Text("Grid overlay that fires when a task status changes. Lines draw in with random timing, intersections glow, then the pattern converges and fades out.")
+                                .textStyle(.body)
+
+                            TaskStatusCardDemo(
+                                state: statusDemoStates[activeStatusIndex],
+                                isAnimating: $isStatusGridAnimating
+                            )
+
+                            Button {
+                                activeStatusIndex = (activeStatusIndex + 1) % statusDemoStates.count
+                                isStatusGridAnimating = true
+                            } label: {
+                                Label("Change status", systemImage: "arrow.triangle.2.circlepath")
+                                    .textStyle(.statusLabel)
+                                    .padding(.horizontal, DesignSystem.Spacing.tight.value)
+                                    .padding(.vertical, DesignSystem.Spacing.tight.value)
+                                    .background(
+                                        Capsule()
+                                            .fill(statusDemoStates[activeStatusIndex].statusColor.opacity(0.15))
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Divider()
+                            .background(DesignColor.border)
+
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("animatedBorder()")
                                 .textStyle(.titleSecondary)
 
@@ -246,6 +303,76 @@ private struct SectionCard<Content: View>: View {
         )
         .designShadow(.md)
     }
+}
+
+private struct TaskStatusCardDemo: View {
+    let state: TaskStatusDemoState
+    @Binding var isAnimating: Bool
+
+    private let cornerRadius = DesignSystem.CornerRadius.xl.value
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xTight.value) {
+                    Text(state.title)
+                        .textStyle(.titleSecondary)
+
+                    Text(state.detail)
+                        .textStyle(.body)
+                }
+
+                Spacer()
+
+                Text(state.statusLabel)
+                    .textStyle(.statusLabel)
+                    .padding(.horizontal, DesignSystem.Spacing.tight.value)
+                    .padding(.vertical, DesignSystem.Spacing.xTight.value)
+                    .background(
+                        Capsule()
+                            .fill(state.statusColor.opacity(0.12))
+                    )
+            }
+
+            Divider()
+                .background(state.statusColor.opacity(0.5))
+
+            HStack {
+                Label(state.actionLabel, systemImage: "sparkles")
+                    .textStyle(.body)
+                    .foregroundColor(state.statusColor)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(DesignColor.Text.secondary)
+            }
+        }
+        .padding(DesignSystem.Spacing.medium.insets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(DesignColor.Surface.card)
+                .overlay {
+                    TaskStatusGridAnimation(
+                        isActive: $isAnimating,
+                        statusColor: state.statusColor,
+                        cornerRadius: cornerRadius
+                    )
+                }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(state.statusColor.opacity(0.6), lineWidth: DesignSystem.BorderWidth.thin.value)
+        )
+    }
+}
+
+private struct TaskStatusDemoState {
+    let title: String
+    let detail: String
+    let statusLabel: String
+    let statusColor: Color
+    let actionLabel: String
 }
 
 @MainActor
