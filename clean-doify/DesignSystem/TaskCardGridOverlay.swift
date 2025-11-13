@@ -183,17 +183,7 @@ public struct TaskCardGridOverlay: View {
             let delay = Double.random(in: 0...timing.maxLineDelay)
             let duration = Double.random(in: timing.minLineDuration...timing.maxLineDuration)
             let completion = delay + duration
-            let baseCollapseStart = max(completion + 0.05, timing.minCollapseDelay)
-            let latestPossibleStart = timing.totalDuration - timing.minCollapseDuration
-            let collapseCeiling = latestPossibleStart > baseCollapseStart
-                ? min(baseCollapseStart + timing.collapseDelayVariance, latestPossibleStart)
-                : baseCollapseStart
-            let collapseDelay: TimeInterval
-            if collapseCeiling > baseCollapseStart {
-                collapseDelay = Double.random(in: baseCollapseStart...collapseCeiling)
-            } else {
-                collapseDelay = baseCollapseStart
-            }
+            let collapseDelay = min(completion, timing.totalDuration)
 
             var collapseDuration = Double.random(in: timing.minCollapseDuration...timing.maxCollapseDuration)
             let availableDuration = max(0, timing.totalDuration - collapseDelay)
@@ -253,8 +243,6 @@ private struct GridAnimationTiming {
     let maxLineDelay: TimeInterval
     let minLineDuration: TimeInterval
     let maxLineDuration: TimeInterval
-    let minCollapseDelay: TimeInterval
-    let collapseDelayVariance: TimeInterval
     let minCollapseDuration: TimeInterval
     let maxCollapseDuration: TimeInterval
 
@@ -264,8 +252,6 @@ private struct GridAnimationTiming {
         let growthWindow = safeTotal * 0.35
         let minDuration = max(0.1, growthWindow * 0.4)
         let maxDuration = max(minDuration + 0.05, growthWindow)
-        let collapseDelay = safeTotal * 0.1
-        let collapseVariance = safeTotal * 0.3
         let minCollapseDuration = max(0.15, safeTotal * 0.12)
         let maxCollapseDuration = max(minCollapseDuration + 0.1, safeTotal * 0.35)
 
@@ -273,8 +259,6 @@ private struct GridAnimationTiming {
         self.maxLineDelay = maxLineDelay
         self.minLineDuration = minDuration
         self.maxLineDuration = maxDuration
-        self.minCollapseDelay = collapseDelay
-        self.collapseDelayVariance = collapseVariance
         self.minCollapseDuration = minCollapseDuration
         self.maxCollapseDuration = maxCollapseDuration
     }
