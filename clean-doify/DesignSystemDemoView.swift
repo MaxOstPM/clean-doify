@@ -5,48 +5,40 @@ import UIKit
 
 struct DesignSystemDemoView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @State private var isStatusShimmerActive = true
+    @State private var isShimmerEnabled = true
+    @State private var isGridActive = false
+
     private let colorTokens: [ColorTokenDescriptor] = [
-        .init(name: "Primary", color: DesignColor.primary, detail: "Primary brand background"),
-        .init(name: "Secondary", color: DesignColor.secondary, detail: "Secondary accents"),
-        .init(name: "Accent", color: DesignColor.accent, detail: "Call-to-action highlight"),
-        .init(name: "Background", color: DesignColor.background, detail: "Base app background"),
-        .init(name: "Foreground", color: DesignColor.foreground, detail: "Primary foreground text"),
-        .init(name: "Surface / Card", color: DesignColor.Surface.card, detail: "Elevated container"),
-        .init(name: "Surface / Popover", color: DesignColor.Surface.popover, detail: "Popover surface"),
-        .init(name: "Surface / Muted", color: DesignColor.Surface.muted, detail: "Muted surface"),
-        .init(name: "Border", color: DesignColor.border, detail: "Dividers & borders"),
-        .init(name: "Input", color: DesignColor.input, detail: "Form backgrounds"),
-        .init(name: "Text / Primary", color: DesignColor.Text.primary, detail: "Primary text"),
-        .init(name: "Text / Secondary", color: DesignColor.Text.secondary, detail: "Secondary text"),
-        .init(name: "Text / Tertiary", color: DesignColor.Text.tertiary, detail: "Caption text"),
-        .init(name: "Text / On Primary", color: DesignColor.Text.onPrimary, detail: "Text on primary"),
-        .init(name: "Text / On Accent", color: DesignColor.Text.onAccent, detail: "Text on accent"),
-        .init(name: "Status / Success", color: DesignColor.Status.success, detail: "Success state"),
-        .init(name: "Status / Failure", color: DesignColor.Status.failure, detail: "Failure state"),
-        .init(name: "Status / Canceled", color: DesignColor.Status.canceled, detail: "Canceled state"),
-        .init(name: "Status / In Progress", color: DesignColor.Status.inProgress, detail: "In-progress state"),
-        .init(name: "Status / Idle", color: DesignColor.Status.idle, detail: "Idle state")
+        .init(name: "Primary", color: DesignColor.primary, detail: "Brand blue background"),
+        .init(name: "Accent", color: DesignColor.accent, detail: "Call-to-action orange"),
+        .init(name: "Success", color: DesignColor.Status.success, detail: "Status - success"),
+        .init(name: "Failure", color: DesignColor.Status.failure, detail: "Status - failure"),
+        .init(name: "Surface", color: DesignColor.Surface.card, detail: "Card surface"),
+        .init(name: "Border", color: DesignColor.border, detail: "Outline & dividers")
     ]
 
-    private let spacingTokens: [SpacingToken] = [
-        .init(name: "xTight", token: .xTight, axis: .horizontal),
-        .init(name: "tight", token: .tight, axis: .vertical),
-        .init(name: "small", token: .small, axis: .horizontal),
-        .init(name: "medium", token: .medium, axis: .vertical),
-        .init(name: "large", token: .large, axis: .vertical),
-        .init(name: "xl", token: .xl, axis: .horizontal)
+    private let shadowTokens: [ShadowTokenDescriptor] = [
+        .init(name: "Technical", token: .technical, detail: "Precision chrome shadow"),
+        .init(name: "Elevated", token: .elevated, detail: "Floating cards"),
+        .init(name: "Glow", token: .glow, detail: "Ambient light wash"),
+        .init(name: "CTA", token: .cta, detail: "Call-to-action emphasis")
     ]
 
-    private let maxContentWidth: CGFloat = 448
+    private let maxContentWidth: CGFloat = 520
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.large.value) {
-                SectionCard(title: "Color Tokens") {
+                Text("Design foundation reference")
+                    .textStyle(.titlePrimary)
+
+                Text("Color tokens, shadows, borders, shimmer, and our CAD-inspired grid animation captured in one glance.")
+                    .textStyle(.body)
+
+                SectionCard(title: "Color tokens") {
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 140), spacing: DesignSystem.Spacing.tight.value)],
-                        spacing: DesignSystem.Spacing.tight.value
+                        columns: [GridItem(.adaptive(minimum: 150), spacing: DesignSystem.Spacing.small.value)],
+                        spacing: DesignSystem.Spacing.small.value
                     ) {
                         ForEach(colorTokens) { descriptor in
                             ColorSwatch(descriptor: descriptor)
@@ -54,106 +46,83 @@ struct DesignSystemDemoView: View {
                     }
                 }
 
-                SectionCard(title: "Typography") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
-                        Text("Section Heading")
-                            .textStyle(.titlePrimary)
-
-                        Text("Primary Title Style")
-                            .textStyle(.titleSecondary)
-
-                        Text("Supporting body copy lives here. It uses the description font with relaxed line height so multi-line text remains legible across content widths.")
-                            .textStyle(.body)
-
-                        Text("Status Label")
-                            .textStyle(.statusLabel)
-                            .padding(.horizontal, DesignSystem.Spacing.tight.value)
-                            .padding(.vertical, DesignSystem.Spacing.xTight.value)
-                            .background(
-                                Capsule()
-                                    .fill(DesignColor.Surface.muted)
-                            )
-                    }
-                }
-
-                SectionCard(title: "Spacing Tokens") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
-                        ForEach(spacingTokens) { token in
-                            SpacingTokenView(token: token)
-                        }
-                    }
-                }
-
-                SectionCard(title: "Animation Modifiers") {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
-                    Text("animatedBorder()")
-                        .textStyle(.titleSecondary)
-
-                    Text("Emphasize active states with a pulsing border that adapts to Reduce Motion preferences.")
+                SectionCard(title: "Shadow scale") {
+                    Text("Each card applies a different \"DesignSystem.Shadow\" token to highlight depth tiers.")
                         .textStyle(.body)
 
-                    RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
-                        .fill(DesignColor.Surface.card)
-                        .frame(height: 120)
-                        .overlay(alignment: .topLeading) {
-                            Text("Active Workflow")
-                                .textStyle(.titleSecondary)
-                                .padding(DesignSystem.Spacing.small.insets)
-                        }
-                        .animatedBorder(
-                            color: DesignColor.Status.inProgress,
-                            lineWidth: DesignSystem.BorderWidth.medium.value,
-                            cornerRadius: DesignSystem.CornerRadius.xl.value
-                        )
-
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
-                            Text("shimmering(active:color:duration:)")
-                                .textStyle(.titleSecondary)
-
-                            Text("Applies a subtle status-badge shimmer that honors Reduce Motion and fades when inactive.")
-                                .textStyle(.body)
-
-                            HStack(spacing: DesignSystem.Spacing.small.value) {
-                                StatusBadge(
-                                    title: "Syncing",
-                                    tint: DesignColor.Status.inProgress
-                                )
-                                .shimmering(active: isStatusShimmerActive, color: DesignColor.Status.inProgress)
-
-                                StatusBadge(
-                                    title: "Queued",
-                                    tint: DesignColor.Status.idle
-                                )
-                                .shimmering(active: false, color: DesignColor.Status.idle)
-                            }
-
-                            Toggle("Active status", isOn: $isStatusShimmerActive)
-                                .toggleStyle(.switch)
-                                .frame(maxWidth: 200, alignment: .leading)
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        spacing: DesignSystem.Spacing.small.value
+                    ) {
+                        ForEach(shadowTokens) { descriptor in
+                            ShadowCard(descriptor: descriptor)
                         }
                     }
                 }
-            }
-        }
 
-        SectionCard(title: "Task Card Grid Overlay") {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
-                Text("CAD-inspired status pulses with optional intersection glows.")
-                    .textStyle(.body)
+                SectionCard(title: "Border animation") {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                        Text("animatedBorder(color:lineWidth:cornerRadius:)")
+                            .textStyle(.titleSecondary)
 
-                TaskCardGridOverlayDemoCard()
+                        Text("Pulsing motion calls attention to live workflows while honoring Reduce Motion.")
+                            .textStyle(.body)
+
+                        BorderAnimationCard()
+                    }
+                }
+
+                SectionCard(title: "Shimmer skeleton") {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                        Text("shimmering(active:color:duration:)")
+                            .textStyle(.titleSecondary)
+
+                        Text("Use the shimmer modifier on badges or placeholders to indicate background work.")
+                            .textStyle(.body)
+
+                        ShimmerSkeletonList(isActive: isShimmerEnabled)
+
+                        Toggle("Active shimmer", isOn: $isShimmerEnabled)
+                            .toggleStyle(.switch)
+                            .frame(maxWidth: 220, alignment: .leading)
+                    }
+                }
+
+                SectionCard(title: "Grid animation overlay") {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                        Text("TaskCardGridOverlay")
+                            .textStyle(.titleSecondary)
+
+                        Text("A CAD-like scan animates whenever the overlay becomes active, ideal for fabrication tasks.")
+                            .textStyle(.body)
+
+                        GridAnimationCard(isActive: isGridActive)
+                    }
+                }
             }
-        }
-    }
             .frame(maxWidth: maxContentWidth, alignment: .leading)
             .padding(.horizontal, DesignSystem.Spacing.small.value)
-            .padding(.bottom, DesignSystem.Spacing.large.value)
-            .padding(.top, DesignSystem.Spacing.medium.value)
+            .padding(.vertical, DesignSystem.Spacing.large.value)
             .frame(maxWidth: .infinity)
         }
         .background(DesignColor.background.ignoresSafeArea())
         .navigationTitle("Design System")
+        .task {
+            await animateGridOverlayLoop()
+        }
+    }
+
+    @MainActor
+    private func animateGridOverlayLoop() async {
+        while !Task.isCancelled {
+            isGridActive = true
+            try? await Task.sleep(nanoseconds: 2_200_000_000)
+
+            if Task.isCancelled { break }
+
+            isGridActive = false
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        }
     }
 }
 
@@ -195,7 +164,7 @@ private struct ColorSwatch: View {
                 .frame(height: 72)
                 .overlay(
                     RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md.value)
-                        .strokeBorder(DesignColor.border.opacity(0.3), lineWidth: DesignSystem.BorderWidth.thin.value)
+                        .strokeBorder(DesignColor.border.opacity(0.35), lineWidth: DesignSystem.BorderWidth.thin.value)
                 )
 
             Text(descriptor.name)
@@ -210,10 +179,144 @@ private struct ColorSwatch: View {
         #if os(iOS)
         let trait = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
         if let description = descriptor.color.hsbDescription(in: trait) {
-            return "Hue \(description.hue)°, Sat \(description.saturation)%, Brightness \(description.brightness)%"
+            return "Hue \(description.hue)°, Sat \(description.saturation)%, Bright \(description.brightness)%"
         }
         #endif
         return descriptor.detail
+    }
+}
+
+private struct ShadowCard: View {
+    let descriptor: ShadowTokenDescriptor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+            Text(descriptor.name)
+                .textStyle(.titleSecondary)
+
+            Text(descriptor.detail)
+                .textStyle(.subtitleMuted)
+
+            Spacer()
+
+            Text(".designShadow(\(descriptor.displayName))")
+                .textStyle(.body)
+                .foregroundStyle(DesignColor.Text.secondary)
+        }
+        .padding(DesignSystem.Spacing.medium.insets)
+        .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg.value)
+                .fill(DesignColor.Surface.card)
+        )
+        .designShadow(descriptor.token)
+    }
+}
+
+private struct BorderAnimationCard: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
+            .fill(DesignColor.Surface.card)
+            .frame(height: 140)
+            .overlay(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("Live machining pass")
+                        .textStyle(.titleSecondary)
+
+                    Text("Toolpath updating in real time")
+                        .textStyle(.body)
+                }
+                .padding(DesignSystem.Spacing.medium.insets)
+            }
+            .animatedBorder(
+                color: DesignColor.Status.inProgress,
+                lineWidth: DesignSystem.BorderWidth.medium.value,
+                cornerRadius: DesignSystem.CornerRadius.xl.value
+            )
+    }
+}
+
+private struct ShimmerSkeletonList: View {
+    let isActive: Bool
+
+    var body: some View {
+        VStack(spacing: DesignSystem.Spacing.small.value) {
+            ForEach(0..<3) { index in
+                ShimmerSkeletonRow(delayIndex: index)
+                    .shimmering(active: isActive, color: DesignColor.Status.inProgress)
+            }
+        }
+    }
+}
+
+private struct ShimmerSkeletonRow: View {
+    let delayIndex: Int
+
+    var body: some View {
+        HStack(spacing: DesignSystem.Spacing.small.value) {
+            Circle()
+                .fill(DesignColor.Surface.muted)
+                .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xTight.value) {
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md.value)
+                    .fill(DesignColor.Surface.muted)
+                    .frame(height: 14)
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md.value)
+                    .fill(DesignColor.Surface.muted.opacity(0.8))
+                    .frame(height: 12)
+                    .padding(.trailing, CGFloat(delayIndex) * 12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(DesignSystem.Spacing.small.insets)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg.value)
+                .fill(DesignColor.Surface.popover)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg.value)
+                .strokeBorder(DesignColor.border.opacity(0.4), lineWidth: DesignSystem.BorderWidth.thin.value)
+        )
+    }
+}
+
+private struct GridAnimationCard: View {
+    let isActive: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
+            .fill(DesignColor.Surface.card)
+            .frame(height: 200)
+            .overlay(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("Adaptive fabrication task")
+                        .textStyle(.titlePrimary)
+
+                    Text("Grid animates whenever the status bumps.")
+                        .textStyle(.body)
+
+                    Text(isActive ? "Animating" : "Idle")
+                        .textStyle(.statusLabel)
+                        .padding(.horizontal, DesignSystem.Spacing.tight.value)
+                        .padding(.vertical, DesignSystem.Spacing.xTight.value)
+                        .background(
+                            Capsule()
+                                .fill(DesignColor.Status.inProgress.opacity(0.15))
+                        )
+                }
+                .padding(DesignSystem.Spacing.medium.insets)
+            }
+            .overlay {
+                TaskCardGridOverlay(
+                    statusColor: DesignColor.Status.inProgress,
+                    isActive: isActive,
+                    cornerRadius: DesignSystem.CornerRadius.xl.value,
+                    lineSpacing: 26,
+                    showsIntersections: true
+                )
+            }
+            .designShadow(.lg)
     }
 }
 
@@ -231,224 +334,13 @@ private struct ColorTokenDescriptor: Identifiable {
     }
 }
 
-private struct StatusBadge: View {
-    let title: String
-    let tint: Color
-
-    var body: some View {
-        Text(title)
-            .textStyle(.statusLabel)
-            .padding(.horizontal, DesignSystem.Spacing.tight.value)
-            .padding(.vertical, DesignSystem.Spacing.xTight.value)
-            .background(
-                Capsule()
-                    .fill(tint.opacity(0.18))
-            )
-            .overlay(
-                Capsule()
-                    .strokeBorder(tint.opacity(0.3), lineWidth: DesignSystem.BorderWidth.thin.value)
-            )
-    }
-}
-
-private struct SpacingToken: Identifiable {
-    enum Axis {
-        case horizontal
-        case vertical
-    }
-
-    let id: String
+private struct ShadowTokenDescriptor: Identifiable {
+    let id = UUID()
     let name: String
-    let token: DesignSystem.Spacing
-    let axis: Axis
+    let token: DesignSystem.Shadow
+    let detail: String
 
-    var value: CGFloat { token.value }
-
-    init(name: String, token: DesignSystem.Spacing, axis: Axis) {
-        self.id = name
-        self.name = name
-        self.token = token
-        self.axis = axis
-    }
-}
-
-private struct SpacingTokenView: View {
-    let token: SpacingToken
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
-            Text("\(token.name) – \(Int(token.value))pt")
-                .textStyle(.titleSecondary)
-
-            Group {
-                switch token.axis {
-                case .horizontal:
-                    HorizontalSpacingExample(value: token.value)
-                case .vertical:
-                    VerticalSpacingExample(value: token.value)
-                }
-            }
-        }
-    }
-}
-
-private struct HorizontalSpacingExample: View {
-    let value: CGFloat
-
-    var body: some View {
-        let visualWidth = min(value, 180)
-
-        HStack(spacing: 0) {
-            Capsule()
-                .fill(DesignColor.accent)
-                .frame(width: 28, height: 10)
-
-            Rectangle()
-                .fill(Color.clear)
-                .frame(width: visualWidth, height: 10)
-                .overlay(
-                    Rectangle()
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                        .foregroundStyle(DesignColor.border)
-                )
-
-            Capsule()
-                .fill(DesignColor.accent)
-                .frame(width: 28, height: 10)
-        }
-    }
-}
-
-private struct VerticalSpacingExample: View {
-    let value: CGFloat
-
-    var body: some View {
-        let visualHeight = min(value, 180)
-
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(DesignColor.accent)
-                .frame(width: 10, height: 28)
-
-            Rectangle()
-                .fill(Color.clear)
-                .frame(width: 10, height: visualHeight)
-                .overlay(
-                    Rectangle()
-                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                        .foregroundStyle(DesignColor.border)
-                )
-
-            Capsule()
-                .fill(DesignColor.accent)
-                .frame(width: 10, height: 28)
-        }
-    }
-}
-
-private struct TaskCardGridOverlayDemoCard: View {
-    private struct StatusDescriptor: Identifiable {
-        let id = UUID()
-        let title: String
-        let detail: String
-        let color: Color
-    }
-
-    private let statuses: [StatusDescriptor] = [
-        .init(title: "Idle", detail: "Waiting for CAD constraints", color: DesignColor.Status.idle),
-        .init(title: "In Progress", detail: "Toolpath being generated", color: DesignColor.Status.inProgress),
-        .init(title: "Success", detail: "Revision approved and synced", color: DesignColor.Status.success),
-        .init(title: "Failure", detail: "Validation caught a clash", color: DesignColor.Status.failure),
-        .init(title: "Canceled", detail: "Operator paused the run", color: DesignColor.Status.canceled)
-    ]
-
-    @State private var currentStatusIndex = 0
-    @State private var isGridActive = false
-    @State private var hasAnimatedOnce = false
-
-    private let animationCooldown: TimeInterval = 2.3
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
-            taskCard
-
-            Button(action: advanceStatus) {
-                Label("Advance to \(nextStatus.title)", systemImage: "sparkles")
-                    .textStyle(.titleSecondary)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(currentStatus.color)
-        }
-    }
-
-    private var taskCard: some View {
-        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
-            .fill(DesignColor.Surface.card)
-            .frame(height: 168)
-            .overlay(alignment: .topLeading) {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
-                    Text("Adaptive Fabrication Task")
-                        .textStyle(.titlePrimary)
-
-                    Text(currentStatus.detail)
-                        .textStyle(.body)
-
-                    HStack(spacing: DesignSystem.Spacing.small.value) {
-                        Capsule()
-                            .fill(currentStatus.color.opacity(0.18))
-                            .overlay(
-                                Text(currentStatus.title)
-                                    .textStyle(.statusLabel)
-                                    .foregroundStyle(currentStatus.color)
-                                    .padding(.horizontal, DesignSystem.Spacing.tight.value)
-                                    .padding(.vertical, DesignSystem.Spacing.xTight.value)
-                            )
-
-                        Spacer()
-
-                        Text("ETA 18m")
-                            .textStyle(.subtitleMuted)
-                    }
-                }
-                .padding(DesignSystem.Spacing.medium.insets)
-            }
-            .overlay {
-                TaskCardGridOverlay(
-                    statusColor: currentStatus.color,
-                    isActive: isGridActive,
-                    cornerRadius: DesignSystem.CornerRadius.xl.value,
-                    lineSpacing: 26,
-                    showsIntersections: true
-                )
-            }
-            .designShadow(.md)
-            .onAppear {
-                guard !hasAnimatedOnce else { return }
-                hasAnimatedOnce = true
-                restartAnimation()
-            }
-    }
-
-    private var currentStatus: StatusDescriptor { statuses[currentStatusIndex] }
-
-    private var nextStatus: StatusDescriptor {
-        statuses[(currentStatusIndex + 1) % statuses.count]
-    }
-
-    private func advanceStatus() {
-        currentStatusIndex = (currentStatusIndex + 1) % statuses.count
-        restartAnimation()
-    }
-
-    private func restartAnimation() {
-        isGridActive = false
-        DispatchQueue.main.async {
-            isGridActive = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + animationCooldown) {
-                isGridActive = false
-            }
-        }
-    }
+    var displayName: String { String(describing: token).capitalized }
 }
 
 #Preview {
