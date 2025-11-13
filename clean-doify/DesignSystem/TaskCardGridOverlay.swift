@@ -301,16 +301,16 @@ private struct GridAnimationTiming {
     init(totalDuration: TimeInterval) {
         let safeTotal = max(totalDuration, 2.0)
         var timelineConsumption = 0.0
-
-        timelineConsumption += 0.35
-        let growthWindow = safeTotal * 0.45
-        let minDuration = max(0.1, growthWindow * 0.35)
-        let maxDuration = max(minDuration + 0.05, growthWindow * 0.65)
         
-        let maxLineDelay = safeTotal * 0.2
+        let maxLineDelay = safeTotal * 0.15
         timelineConsumption += maxLineDelay
+
+        let growthWindow = safeTotal * 0.35
+        timelineConsumption += 0.4
+        let minDuration = max(0.1, growthWindow * 0.4)
+        let maxDuration = max(minDuration + 0.05, growthWindow)
         
-        let fadeDelay = safeTotal * 0.15
+        let fadeDelay = safeTotal * 0.2
         timelineConsumption += fadeDelay
         
         let fadeDuration = safeTotal * 0.3
