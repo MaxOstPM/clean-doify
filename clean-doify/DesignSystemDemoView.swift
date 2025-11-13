@@ -85,28 +85,27 @@ struct DesignSystemDemoView: View {
                 }
 
                 SectionCard(title: "Animation Modifiers") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
-                            Text("animatedBorder()")
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+                    Text("animatedBorder()")
+                        .textStyle(.titleSecondary)
+
+                    Text("Emphasize active states with a pulsing border that adapts to Reduce Motion preferences.")
+                        .textStyle(.body)
+
+                    RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
+                        .fill(DesignColor.Surface.card)
+                        .frame(height: 120)
+                        .overlay(alignment: .topLeading) {
+                            Text("Active Workflow")
                                 .textStyle(.titleSecondary)
-
-                            Text("Emphasize active states with a pulsing border that adapts to Reduce Motion preferences.")
-                                .textStyle(.body)
-
-                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
-                                .fill(DesignColor.Surface.card)
-                                .frame(height: 120)
-                                .overlay(alignment: .topLeading) {
-                                    Text("Active Workflow")
-                                        .textStyle(.titleSecondary)
-                                        .padding(DesignSystem.Spacing.small.insets)
-                                }
-                                .animatedBorder(
-                                    color: DesignColor.Status.inProgress,
-                                    lineWidth: DesignSystem.BorderWidth.medium.value,
-                                    cornerRadius: DesignSystem.CornerRadius.xl.value
-                                )
+                                .padding(DesignSystem.Spacing.small.insets)
                         }
+                        .animatedBorder(
+                            color: DesignColor.Status.inProgress,
+                            lineWidth: DesignSystem.BorderWidth.medium.value,
+                            cornerRadius: DesignSystem.CornerRadius.xl.value
+                        )
 
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
                             Text("shimmering(active:color:duration:)")
@@ -136,6 +135,17 @@ struct DesignSystemDemoView: View {
                     }
                 }
             }
+        }
+
+        SectionCard(title: "Task Card Grid Overlay") {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
+                Text("CAD-inspired status pulses with optional intersection glows.")
+                    .textStyle(.body)
+
+                TaskCardGridOverlayDemoCard()
+            }
+        }
+    }
             .frame(maxWidth: maxContentWidth, alignment: .leading)
             .padding(.horizontal, DesignSystem.Spacing.small.value)
             .padding(.bottom, DesignSystem.Spacing.large.value)
@@ -332,6 +342,111 @@ private struct VerticalSpacingExample: View {
             Capsule()
                 .fill(DesignColor.accent)
                 .frame(width: 10, height: 28)
+        }
+    }
+}
+
+private struct TaskCardGridOverlayDemoCard: View {
+    private struct StatusDescriptor: Identifiable {
+        let id = UUID()
+        let title: String
+        let detail: String
+        let color: Color
+    }
+
+    private let statuses: [StatusDescriptor] = [
+        .init(title: "Idle", detail: "Waiting for CAD constraints", color: DesignColor.Status.idle),
+        .init(title: "In Progress", detail: "Toolpath being generated", color: DesignColor.Status.inProgress),
+        .init(title: "Success", detail: "Revision approved and synced", color: DesignColor.Status.success),
+        .init(title: "Failure", detail: "Validation caught a clash", color: DesignColor.Status.failure),
+        .init(title: "Canceled", detail: "Operator paused the run", color: DesignColor.Status.canceled)
+    ]
+
+    @State private var currentStatusIndex = 0
+    @State private var isGridActive = false
+    @State private var hasAnimatedOnce = false
+
+    private let animationCooldown: TimeInterval = 2.3
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium.value) {
+            taskCard
+
+            Button(action: advanceStatus) {
+                Label("Advance to \(nextStatus.title)", systemImage: "sparkles")
+                    .textStyle(.titleSecondary)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(currentStatus.color)
+        }
+    }
+
+    private var taskCard: some View {
+        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
+            .fill(DesignColor.Surface.card)
+            .frame(height: 168)
+            .overlay(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("Adaptive Fabrication Task")
+                        .textStyle(.titlePrimary)
+
+                    Text(currentStatus.detail)
+                        .textStyle(.body)
+
+                    HStack(spacing: DesignSystem.Spacing.small.value) {
+                        Capsule()
+                            .fill(currentStatus.color.opacity(0.18))
+                            .overlay(
+                                Text(currentStatus.title)
+                                    .textStyle(.statusLabel)
+                                    .foregroundStyle(currentStatus.color)
+                                    .padding(.horizontal, DesignSystem.Spacing.tight.value)
+                                    .padding(.vertical, DesignSystem.Spacing.xTight.value)
+                            )
+
+                        Spacer()
+
+                        Text("ETA 18m")
+                            .textStyle(.subtitleMuted)
+                    }
+                }
+                .padding(DesignSystem.Spacing.medium.insets)
+            }
+            .overlay {
+                TaskCardGridOverlay(
+                    statusColor: currentStatus.color,
+                    isActive: isGridActive,
+                    cornerRadius: DesignSystem.CornerRadius.xl.value,
+                    lineSpacing: 26,
+                    showsIntersections: true
+                )
+            }
+            .designShadow(.md)
+            .onAppear {
+                guard !hasAnimatedOnce else { return }
+                hasAnimatedOnce = true
+                restartAnimation()
+            }
+    }
+
+    private var currentStatus: StatusDescriptor { statuses[currentStatusIndex] }
+
+    private var nextStatus: StatusDescriptor {
+        statuses[(currentStatusIndex + 1) % statuses.count]
+    }
+
+    private func advanceStatus() {
+        currentStatusIndex = (currentStatusIndex + 1) % statuses.count
+        restartAnimation()
+    }
+
+    private func restartAnimation() {
+        isGridActive = false
+        DispatchQueue.main.async {
+            isGridActive = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationCooldown) {
+                isGridActive = false
+            }
         }
     }
 }
