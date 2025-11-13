@@ -8,7 +8,6 @@ struct DesignSystemDemoView: View {
     @State private var selectedSection: DemoSection = .colors
     @State private var isShimmerEnabled = true
     @State private var isGridActive = false
-    @State private var showsGridDots = true
     @State private var gridAnimationTask: Task<Void, Never>?
 
     private let colorTokens: [ColorTokenDescriptor] = [
@@ -180,11 +179,7 @@ struct DesignSystemDemoView: View {
                     }
                     .disabled(isGridActive)
 
-                    GridAnimationCard(isActive: isGridActive, showsIntersections: showsGridDots)
-
-                    Toggle("Show intersection dots", isOn: $showsGridDots)
-                        .toggleStyle(.switch)
-                        .frame(maxWidth: 220, alignment: .leading)
+                    GridAnimationCard(isActive: isGridActive)
                 }
             }
         }
@@ -438,7 +433,6 @@ private struct ShimmerSkeletonRow: View {
 
 private struct GridAnimationCard: View {
     let isActive: Bool
-    let showsIntersections: Bool
 
     var body: some View {
         RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
@@ -468,8 +462,7 @@ private struct GridAnimationCard: View {
                     statusColor: DesignColor.Status.success,
                     isActive: isActive,
                     cornerRadius: DesignSystem.CornerRadius.xl.value,
-                    lineSpacing: 26,
-                    showsIntersections: showsIntersections
+                    lineSpacing: 26
                 )
             }
             .designShadow(.lg)
