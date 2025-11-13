@@ -459,7 +459,7 @@ private struct GridAnimationCard: View {
             }
             .overlay {
                 TaskCardGridOverlay(
-                    statusColor: DesignColor.Status.success,
+                    statusColor: DesignColor.Status.inProgress,
                     isActive: isActive,
                     cornerRadius: DesignSystem.CornerRadius.xl.value,
                     lineSpacing: 26
