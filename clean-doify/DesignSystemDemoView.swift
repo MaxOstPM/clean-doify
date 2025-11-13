@@ -7,6 +7,7 @@ struct DesignSystemDemoView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var isShimmerEnabled = true
     @State private var isGridActive = false
+    @State private var showsGridDots = true
 
     private let colorTokens: [ColorTokenDescriptor] = [
         .init(name: "Primary", color: DesignColor.primary, detail: "Brand blue background"),
@@ -96,7 +97,13 @@ struct DesignSystemDemoView: View {
                         Text("A CAD-like scan animates whenever the overlay becomes active, ideal for fabrication tasks.")
                             .textStyle(.body)
 
-                        GridAnimationCard(isActive: isGridActive)
+                        GridAnimationCard(isActive: isGridActive, showsIntersections: showsGridDots)
+
+                        LiquidGlassGridCard(isActive: isGridActive, showsIntersections: showsGridDots)
+
+                        Toggle("Show intersection dots", isOn: $showsGridDots)
+                            .toggleStyle(.switch)
+                            .frame(maxWidth: 220, alignment: .leading)
                     }
                 }
             }
@@ -283,6 +290,7 @@ private struct ShimmerSkeletonRow: View {
 
 private struct GridAnimationCard: View {
     let isActive: Bool
+    let showsIntersections: Bool
 
     var body: some View {
         RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value)
@@ -313,10 +321,57 @@ private struct GridAnimationCard: View {
                     isActive: isActive,
                     cornerRadius: DesignSystem.CornerRadius.xl.value,
                     lineSpacing: 26,
-                    showsIntersections: true
+                    showsIntersections: showsIntersections
                 )
             }
             .designShadow(.lg)
+    }
+}
+
+private struct LiquidGlassGridCard: View {
+    let isActive: Bool
+    let showsIntersections: Bool
+
+    private var glassShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value, style: .continuous)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+            Text("Liquid glass processor")
+                .textStyle(.titlePrimary)
+
+            Text("Grid hovers over a translucent, glassy cockpit.")
+                .textStyle(.body)
+
+            Label(isActive ? "Animating scan" : "Awaiting input", systemImage: isActive ? "waveform.path.ecg" : "pause")
+                .textStyle(.statusLabel)
+        }
+        .padding(DesignSystem.Spacing.medium.insets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 220)
+        .background(
+            glassShape
+                .strokeBorder(DesignColor.Surface.card.opacity(0.45), lineWidth: DesignSystem.BorderWidth.thin.value)
+        )
+        .glassBackgroundEffect(in: glassShape)
+        .overlay {
+            TaskCardGridOverlay(
+                statusColor: DesignColor.Surface.card,
+                isActive: isActive,
+                cornerRadius: DesignSystem.CornerRadius.xl.value,
+                lineSpacing: 22,
+                lineOpacity: 0.35,
+                lineThickness: 1.2,
+                blurRadius: 1.1,
+                glowRadius: 3,
+                showsIntersections: showsIntersections,
+                intersectionOpacity: 0.9,
+                intersectionSize: 3.5,
+                animationDuration: 3.2
+            )
+        }
+        .designShadow(.xl)
     }
 }
 

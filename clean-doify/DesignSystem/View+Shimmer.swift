@@ -8,7 +8,7 @@ public struct ShimmerModifier: ViewModifier {
     private let color: Color
     private let duration: TimeInterval
 
-    @State private var phase: CGFloat = -1.0
+    @State private var phase: CGFloat = -1.35
 
     public init(active: Bool, color: Color, duration: TimeInterval = 3.0) {
         self.active = active
@@ -38,13 +38,13 @@ public struct ShimmerModifier: ViewModifier {
 
     private func updateAnimation() {
         guard !reduceMotion else {
-            phase = -1.0
+            phase = -1.35
             return
         }
 
         guard active else {
             withAnimation(.easeOut(duration: 0.2)) {
-                phase = -1.0
+                phase = -1.35
             }
             return
         }
@@ -53,7 +53,7 @@ public struct ShimmerModifier: ViewModifier {
             .repeatForever(autoreverses: false)
 
         withAnimation(animation) {
-            phase = 1.0
+            phase = 1.35
         }
     }
 }
@@ -86,7 +86,7 @@ private struct ShimmerOverlay: View {
     }
 
     private func shimmerGradient(width: CGFloat, height: CGFloat) -> some View {
-        let gradientWidth = max(width * 2, 1)
+        let gradientWidth = max(width * 1.35, 1)
 
         return LinearGradient(
             gradient: Gradient(stops: gradientStops),

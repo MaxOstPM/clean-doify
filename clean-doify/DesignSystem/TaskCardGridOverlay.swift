@@ -9,13 +9,6 @@ import SwiftUI
 public struct TaskCardGridOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private enum Constants {
-        static let maxLineDelay: TimeInterval = 0.8
-        static let minLineDuration: TimeInterval = 1.0
-        static let maxLineDuration: TimeInterval = 1.4
-        static let totalAnimationLength: TimeInterval = 2.1
-    }
-
     public let statusColor: Color
     public let isActive: Bool
     public var cornerRadius: CGFloat
@@ -27,8 +20,7 @@ public struct TaskCardGridOverlay: View {
     public var showsIntersections: Bool
     public var intersectionOpacity: Double
     public var intersectionSize: CGFloat
-    public var convergenceDelay: TimeInterval
-    public var convergenceDuration: TimeInterval
+    public var animationDuration: TimeInterval
 
     @State private var gridMetrics: GridMetrics?
     @State private var lineConfigs: [GridLineConfiguration] = []
@@ -36,6 +28,8 @@ public struct TaskCardGridOverlay: View {
     @State private var animationTrigger = UUID()
     @State private var cachedSize: CGSize = .zero
     @State private var borderFlashOpacity: Double = 0
+
+    private let timing: GridAnimationTiming
 
     public init(
         statusColor: Color,
@@ -49,8 +43,7 @@ public struct TaskCardGridOverlay: View {
         showsIntersections: Bool = true,
         intersectionOpacity: Double = 0.75,
         intersectionSize: CGFloat = 3,
-        convergenceDelay: TimeInterval = 1.5,
-        convergenceDuration: TimeInterval = 0.45
+        animationDuration: TimeInterval = 2.6
     ) {
         self.statusColor = statusColor
         self.isActive = isActive
@@ -63,8 +56,9 @@ public struct TaskCardGridOverlay: View {
         self.showsIntersections = showsIntersections
         self.intersectionOpacity = intersectionOpacity
         self.intersectionSize = intersectionSize
-        self.convergenceDelay = convergenceDelay
-        self.convergenceDuration = convergenceDuration
+        let resolvedDuration = max(animationDuration, 1.6)
+        self.animationDuration = resolvedDuration
+        self.timing = GridAnimationTiming(totalDuration: resolvedDuration)
     }
 
     public var body: some View {
@@ -113,8 +107,8 @@ public struct TaskCardGridOverlay: View {
                             color: statusColor.opacity(lineOpacity),
                             blurRadius: blurRadius,
                             glowRadius: glowRadius,
-                            convergenceDelay: convergenceDelay,
-                            convergenceDuration: convergenceDuration,
+                            fadeOutDelay: timing.fadeOutDelay,
+                            fadeOutDuration: timing.fadeOutDuration,
                             animationTrigger: animationTrigger
                         )
                     }
@@ -128,8 +122,8 @@ public struct TaskCardGridOverlay: View {
                             color: statusColor.opacity(lineOpacity),
                             blurRadius: blurRadius,
                             glowRadius: glowRadius,
-                            convergenceDelay: convergenceDelay,
-                            convergenceDuration: convergenceDuration,
+                            fadeOutDelay: timing.fadeOutDelay,
+                            fadeOutDuration: timing.fadeOutDuration,
                             animationTrigger: animationTrigger
                         )
                     }
@@ -210,7 +204,7 @@ public struct TaskCardGridOverlay: View {
 
     private func scheduleCleanup() {
         let runID = animationTrigger
-        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.totalAnimationLength) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + timing.totalDuration) {
             guard runID == animationTrigger else { return }
             clearGrid()
         }
@@ -220,8 +214,8 @@ public struct TaskCardGridOverlay: View {
         var configs: [GridLineConfiguration] = []
 
         for index in 0..<metrics.horizontalCount {
-            let delay = Double.random(in: 0...Constants.maxLineDelay)
-            let duration = Double.random(in: Constants.minLineDuration...Constants.maxLineDuration)
+            let delay = Double.random(in: 0...timing.maxLineDelay)
+            let duration = Double.random(in: timing.minLineDuration...timing.maxLineDuration)
             configs.append(
                 GridLineConfiguration(
                     orientation: .horizontal,
@@ -234,8 +228,8 @@ public struct TaskCardGridOverlay: View {
         }
 
         for index in 0..<metrics.verticalCount {
-            let delay = Double.random(in: 0...Constants.maxLineDelay)
-            let duration = Double.random(in: Constants.minLineDuration...Constants.maxLineDuration)
+            let delay = Double.random(in: 0...timing.maxLineDelay)
+            let duration = Double.random(in: timing.minLineDuration...timing.maxLineDuration)
             configs.append(
                 GridLineConfiguration(
                     orientation: .vertical,
@@ -253,13 +247,15 @@ public struct TaskCardGridOverlay: View {
     private func generateIntersectionConfigs(using metrics: GridMetrics, lineConfigs: [GridLineConfiguration]) -> [IntersectionConfiguration] {
         let horizontal = lineConfigs.filter { $0.orientation == .horizontal }
         let vertical = lineConfigs.filter { $0.orientation == .vertical }
+        let minDotDuration = max(0.25, timing.fadeOutDuration * 0.35)
+        let maxDotDuration = max(minDotDuration + 0.1, timing.fadeOutDuration * 0.65)
 
         var intersections: [IntersectionConfiguration] = []
         for hLine in horizontal {
             for vLine in vertical {
                 let lineArrival = max(hLine.endTime, vLine.endTime)
                 let jitter = Double.random(in: 0...0.15)
-                let duration = Double.random(in: 0.4...0.6)
+                let duration = Double.random(in: minDotDuration...maxDotDuration)
                 intersections.append(
                     IntersectionConfiguration(
                         rowIndex: hLine.index,
@@ -295,6 +291,42 @@ private struct GridMetrics: Equatable {
     let verticalCount: Int
 }
 
+private struct GridAnimationTiming {
+    let totalDuration: TimeInterval
+    let maxLineDelay: TimeInterval
+    let minLineDuration: TimeInterval
+    let maxLineDuration: TimeInterval
+    let fadeOutDelay: TimeInterval
+    let fadeOutDuration: TimeInterval
+
+    init(totalDuration: TimeInterval) {
+        let safeTotal = max(totalDuration, 1.6)
+        let maxDelay = safeTotal * 0.3
+
+        var fadeDuration = max(0.5, safeTotal * 0.45)
+        if fadeDuration >= safeTotal {
+            fadeDuration = safeTotal * 0.7
+        }
+
+        var fadeDelay = safeTotal - fadeDuration
+        if fadeDelay < safeTotal * 0.45 {
+            fadeDelay = safeTotal * 0.55
+            fadeDuration = safeTotal - fadeDelay
+        }
+
+        let growthWindow = max(fadeDelay - maxDelay, 0.3)
+        let minDuration = max(0.18, growthWindow * 0.35)
+        let maxDuration = max(minDuration + 0.08, growthWindow * 0.65)
+
+        self.totalDuration = safeTotal
+        self.maxLineDelay = maxDelay
+        self.minLineDuration = minDuration
+        self.maxLineDuration = maxDuration
+        self.fadeOutDelay = fadeDelay
+        self.fadeOutDuration = fadeDuration
+    }
+}
+
 private struct GridLineConfiguration: Identifiable, Equatable {
     enum Orientation {
         case horizontal
@@ -327,8 +359,8 @@ private struct AnimatedGridLine: View {
     let color: Color
     let blurRadius: CGFloat
     let glowRadius: CGFloat
-    let convergenceDelay: TimeInterval
-    let convergenceDuration: TimeInterval
+    let fadeOutDelay: TimeInterval
+    let fadeOutDuration: TimeInterval
     let animationTrigger: UUID
 
     @State private var progress: CGFloat = 0
@@ -381,9 +413,9 @@ private struct AnimatedGridLine: View {
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + convergenceDelay) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + fadeOutDelay) {
             guard runID == animationTrigger else { return }
-            withAnimation(.easeIn(duration: convergenceDuration)) {
+            withAnimation(.easeIn(duration: fadeOutDuration)) {
                 collapseProgress = 1
                 opacity = 0
             }
