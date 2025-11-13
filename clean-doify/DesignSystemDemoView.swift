@@ -99,8 +99,6 @@ struct DesignSystemDemoView: View {
 
                         GridAnimationCard(isActive: isGridActive, showsIntersections: showsGridDots)
 
-                        LiquidGlassGridCard(isActive: isGridActive, showsIntersections: showsGridDots)
-
                         Toggle("Show intersection dots", isOn: $showsGridDots)
                             .toggleStyle(.switch)
                             .frame(maxWidth: 220, alignment: .leading)
@@ -176,20 +174,7 @@ private struct ColorSwatch: View {
 
             Text(descriptor.name)
                 .textStyle(.titleSecondary)
-
-            Text(accessibilityDescription)
-                .textStyle(.subtitleMuted)
         }
-    }
-
-    private var accessibilityDescription: String {
-        #if os(iOS)
-        let trait = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
-        if let description = descriptor.color.hsbDescription(in: trait) {
-            return "Hue \(description.hue)°, Sat \(description.saturation)%, Bright \(description.brightness)%"
-        }
-        #endif
-        return descriptor.detail
     }
 }
 
@@ -317,7 +302,7 @@ private struct GridAnimationCard: View {
             }
             .overlay {
                 TaskCardGridOverlay(
-                    statusColor: DesignColor.Status.inProgress,
+                    statusColor: DesignColor.Status.success,
                     isActive: isActive,
                     cornerRadius: DesignSystem.CornerRadius.xl.value,
                     lineSpacing: 26,
@@ -325,53 +310,6 @@ private struct GridAnimationCard: View {
                 )
             }
             .designShadow(.lg)
-    }
-}
-
-private struct LiquidGlassGridCard: View {
-    let isActive: Bool
-    let showsIntersections: Bool
-
-    private var glassShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.xl.value, style: .continuous)
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
-            Text("Liquid glass processor")
-                .textStyle(.titlePrimary)
-
-            Text("Grid hovers over a translucent, glassy cockpit.")
-                .textStyle(.body)
-
-            Label(isActive ? "Animating scan" : "Awaiting input", systemImage: isActive ? "waveform.path.ecg" : "pause")
-                .textStyle(.statusLabel)
-        }
-        .padding(DesignSystem.Spacing.medium.insets)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 220)
-        .background(
-            glassShape
-                .strokeBorder(DesignColor.Surface.card.opacity(0.45), lineWidth: DesignSystem.BorderWidth.thin.value)
-        )
-        .glassBackgroundEffect(in: glassShape)
-        .overlay {
-            TaskCardGridOverlay(
-                statusColor: DesignColor.Surface.card,
-                isActive: isActive,
-                cornerRadius: DesignSystem.CornerRadius.xl.value,
-                lineSpacing: 22,
-                lineOpacity: 0.35,
-                lineThickness: 1.2,
-                blurRadius: 1.1,
-                glowRadius: 3,
-                showsIntersections: showsIntersections,
-                intersectionOpacity: 0.9,
-                intersectionSize: 3.5,
-                animationDuration: 3.2
-            )
-        }
-        .designShadow(.xl)
     }
 }
 

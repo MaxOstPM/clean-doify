@@ -43,7 +43,7 @@ public struct TaskCardGridOverlay: View {
         showsIntersections: Bool = true,
         intersectionOpacity: Double = 0.75,
         intersectionSize: CGFloat = 3,
-        animationDuration: TimeInterval = 2.6
+        animationDuration: TimeInterval = 8.0
     ) {
         self.statusColor = statusColor
         self.isActive = isActive
@@ -56,9 +56,8 @@ public struct TaskCardGridOverlay: View {
         self.showsIntersections = showsIntersections
         self.intersectionOpacity = intersectionOpacity
         self.intersectionSize = intersectionSize
-        let resolvedDuration = max(animationDuration, 1.6)
-        self.animationDuration = resolvedDuration
-        self.timing = GridAnimationTiming(totalDuration: resolvedDuration)
+        self.animationDuration = animationDuration
+        self.timing = GridAnimationTiming(totalDuration: animationDuration)
     }
 
     public var body: some View {
@@ -300,26 +299,25 @@ private struct GridAnimationTiming {
     let fadeOutDuration: TimeInterval
 
     init(totalDuration: TimeInterval) {
-        let safeTotal = max(totalDuration, 1.6)
-        let maxDelay = safeTotal * 0.3
+        let safeTotal = max(totalDuration, 2.0)
+        var timelineConsumption = 0.0
 
-        var fadeDuration = max(0.5, safeTotal * 0.45)
-        if fadeDuration >= safeTotal {
-            fadeDuration = safeTotal * 0.7
-        }
-
-        var fadeDelay = safeTotal - fadeDuration
-        if fadeDelay < safeTotal * 0.45 {
-            fadeDelay = safeTotal * 0.55
-            fadeDuration = safeTotal - fadeDelay
-        }
-
-        let growthWindow = max(fadeDelay - maxDelay, 0.3)
-        let minDuration = max(0.18, growthWindow * 0.35)
-        let maxDuration = max(minDuration + 0.08, growthWindow * 0.65)
+        timelineConsumption += 0.35
+        let growthWindow = safeTotal * 0.45
+        let minDuration = max(0.1, growthWindow * 0.35)
+        let maxDuration = max(minDuration + 0.05, growthWindow * 0.65)
+        
+        let maxLineDelay = safeTotal * 0.2
+        timelineConsumption += maxLineDelay
+        
+        let fadeDelay = safeTotal * 0.15
+        timelineConsumption += fadeDelay
+        
+        let fadeDuration = safeTotal * 0.3
+        timelineConsumption += fadeDuration
 
         self.totalDuration = safeTotal
-        self.maxLineDelay = maxDelay
+        self.maxLineDelay = maxLineDelay
         self.minLineDuration = minDuration
         self.maxLineDuration = maxDuration
         self.fadeOutDelay = fadeDelay

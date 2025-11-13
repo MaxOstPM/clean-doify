@@ -28,6 +28,7 @@ public struct ShimmerModifier: ViewModifier {
                             phase: phase,
                             isVisible: active && !reduceMotion
                         )
+                        .mask(content)
                     )
                     .onAppear(perform: updateAnimation)
                     .onChange(of: active) { _ in updateAnimation() }
