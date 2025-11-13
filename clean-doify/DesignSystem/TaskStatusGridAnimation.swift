@@ -1,7 +1,5 @@
 import SwiftUI
-#if canImport(UIKit)
 import UIKit
-#endif
 
 /// Technical grid animation that fires when a task's status changes.
 /// The overlay draws a CAD-inspired grid, glows the intersections, and
@@ -20,11 +18,7 @@ public struct TaskStatusGridAnimation: View {
     @State private var configuration = GridAnimationConfiguration.randomized()
     @State private var completionTask: Task<Void, Never>?
 
-    #if canImport(UIKit)
     private var pixelLineWidth: CGFloat { max(1 / UIScreen.main.scale, 0.5) }
-    #else
-    private var pixelLineWidth: CGFloat { 1 }
-    #endif
 
     public init(
         isActive: Binding<Bool>,

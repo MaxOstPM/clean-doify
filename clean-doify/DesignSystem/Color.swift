@@ -1,7 +1,5 @@
 import SwiftUI
-#if canImport(UIKit)
 import UIKit
-#endif
 
 /// Primary namespace for design system level utilities that do not belong to a
 /// specific token group. The enum remains empty and is used for existing
@@ -55,16 +53,11 @@ public extension Color {
     ///   - light: Color used when the system is in light mode.
     ///   - dark: Color used when the system is in dark mode.
     init(light: Color, dark: Color) {
-        #if canImport(UIKit)
         self = Color(UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
         })
-        #else
-        self = light
-        #endif
     }
 
-    #if canImport(UIKit)
     /// Describes the color's hue, saturation, and brightness values for a given trait collection.
     /// Falls back to ``nil`` if the underlying color cannot provide HSB components (e.g. pattern images).
     @MainActor
@@ -86,10 +79,8 @@ public extension Color {
             brightness: Int((brightness * 100).rounded())
         )
     }
-    #endif
 }
 
-#if canImport(UIKit)
 public extension Color {
     struct HSBDescription: Hashable {
         public let hue: Int
@@ -103,7 +94,6 @@ public extension Color {
         }
     }
 }
-#endif
 
 // MARK: - Semantic Colors
 

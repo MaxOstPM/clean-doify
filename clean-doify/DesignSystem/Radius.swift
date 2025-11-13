@@ -10,7 +10,6 @@ public extension DesignSystem {
         case md
         case lg
         case xl
-        case full
 
         /// Returns the underlying radius value in points.
         public var value: CGFloat {
@@ -25,8 +24,6 @@ public extension DesignSystem {
                 return 16
             case .xl:
                 return 24
-            case .full:
-                return 9_999
             }
         }
     }
