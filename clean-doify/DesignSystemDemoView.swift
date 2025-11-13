@@ -5,6 +5,7 @@ import UIKit
 
 struct DesignSystemDemoView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isStatusShimmerActive = true
     private let colorTokens: [ColorTokenDescriptor] = [
         .init(name: "Primary", color: DesignColor.primary, detail: "Primary brand background"),
         .init(name: "Secondary", color: DesignColor.secondary, detail: "Secondary accents"),
@@ -105,6 +106,33 @@ struct DesignSystemDemoView: View {
                             lineWidth: DesignSystem.BorderWidth.medium.value,
                             cornerRadius: DesignSystem.CornerRadius.xl.value
                         )
+
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+                            Text("shimmering(active:color:duration:)")
+                                .textStyle(.titleSecondary)
+
+                            Text("Applies a subtle status-badge shimmer that honors Reduce Motion and fades when inactive.")
+                                .textStyle(.body)
+
+                            HStack(spacing: DesignSystem.Spacing.small.value) {
+                                StatusBadge(
+                                    title: "Syncing",
+                                    tint: DesignColor.Status.inProgress
+                                )
+                                .shimmering(active: isStatusShimmerActive, color: DesignColor.Status.inProgress)
+
+                                StatusBadge(
+                                    title: "Queued",
+                                    tint: DesignColor.Status.idle
+                                )
+                                .shimmering(active: false, color: DesignColor.Status.idle)
+                            }
+
+                            Toggle("Active status", isOn: $isStatusShimmerActive)
+                                .toggleStyle(.switch)
+                                .frame(maxWidth: 200, alignment: .leading)
+                        }
+                    }
                 }
             }
         }
@@ -200,6 +228,26 @@ private struct ColorTokenDescriptor: Identifiable {
         self.name = name
         self.color = color
         self.detail = detail
+    }
+}
+
+private struct StatusBadge: View {
+    let title: String
+    let tint: Color
+
+    var body: some View {
+        Text(title)
+            .textStyle(.statusLabel)
+            .padding(.horizontal, DesignSystem.Spacing.tight.value)
+            .padding(.vertical, DesignSystem.Spacing.xTight.value)
+            .background(
+                Capsule()
+                    .fill(tint.opacity(0.18))
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(tint.opacity(0.3), lineWidth: DesignSystem.BorderWidth.thin.value)
+            )
     }
 }
 
