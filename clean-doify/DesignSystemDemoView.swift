@@ -5,9 +5,11 @@ import UIKit
 
 struct DesignSystemDemoView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var selectedSection: DemoSection = .colors
     @State private var isShimmerEnabled = true
     @State private var isGridActive = false
     @State private var showsGridDots = true
+    @State private var gridAnimationTask: Task<Void, Never>?
 
     private let colorTokens: [ColorTokenDescriptor] = [
         .init(name: "Primary", color: DesignColor.primary, detail: "Brand blue background"),
@@ -16,6 +18,22 @@ struct DesignSystemDemoView: View {
         .init(name: "Failure", color: DesignColor.Status.failure, detail: "Status - failure"),
         .init(name: "Surface", color: DesignColor.Surface.card, detail: "Card surface"),
         .init(name: "Border", color: DesignColor.border, detail: "Outline & dividers")
+    ]
+
+    private let textColorTokens: [ColorTokenDescriptor] = [
+        .init(name: "Text / Primary", color: DesignColor.Text.primary, detail: "High emphasis copy"),
+        .init(name: "Text / Secondary", color: DesignColor.Text.secondary, detail: "Muted or helper copy"),
+        .init(name: "Text / Tertiary", color: DesignColor.Text.tertiary, detail: "Metadata & captions"),
+        .init(name: "Text / On Primary", color: DesignColor.Text.onPrimary, detail: "Text on brand fills"),
+        .init(name: "Text / On Accent", color: DesignColor.Text.onAccent, detail: "Text on CTA surfaces")
+    ]
+
+    private let fontTokens: [FontTokenDescriptor] = [
+        .init(name: "Title / Primary", preview: "Headlines anchor pages", font: DesignSystem.Typography.titlePrimary, detail: "20pt bold"),
+        .init(name: "Title / Secondary", preview: "Section headers + tabs", font: DesignSystem.Typography.titleSecondary, detail: "16pt semibold"),
+        .init(name: "Body", preview: "Readable narrative text", font: DesignSystem.Typography.body, detail: "14pt regular"),
+        .init(name: "Status Label", preview: "Badge + status chips", font: DesignSystem.Typography.statusLabel, detail: "12pt medium"),
+        .init(name: "Subtitle / Muted", preview: "Supporting metadata", font: DesignSystem.Typography.subtitleMuted, detail: "12pt regular")
     ]
 
     private let shadowTokens: [ShadowTokenDescriptor] = [
@@ -33,75 +51,24 @@ struct DesignSystemDemoView: View {
                 Text("Design foundation reference")
                     .textStyle(.titlePrimary)
 
-                Text("Color tokens, shadows, borders, shimmer, and our CAD-inspired grid animation captured in one glance.")
+                Text(selectedSection.detail)
                     .textStyle(.body)
 
-                SectionCard(title: "Color tokens") {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 150), spacing: DesignSystem.Spacing.small.value)],
-                        spacing: DesignSystem.Spacing.small.value
-                    ) {
-                        ForEach(colorTokens) { descriptor in
-                            ColorSwatch(descriptor: descriptor)
-                        }
+                Picker("Showcase", selection: $selectedSection) {
+                    ForEach(DemoSection.allCases) { section in
+                        Text(section.title).tag(section)
                     }
                 }
+                .pickerStyle(.segmented)
 
-                SectionCard(title: "Shadow scale") {
-                    Text("Each card applies a different \"DesignSystem.Shadow\" token to highlight depth tiers.")
-                        .textStyle(.body)
-
-                    LazyVGrid(
-                        columns: [GridItem(.flexible()), GridItem(.flexible())],
-                        spacing: DesignSystem.Spacing.small.value
-                    ) {
-                        ForEach(shadowTokens) { descriptor in
-                            ShadowCard(descriptor: descriptor)
-                        }
-                    }
-                }
-
-                SectionCard(title: "Border animation") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
-                        Text("animatedBorder(color:lineWidth:cornerRadius:)")
-                            .textStyle(.titleSecondary)
-
-                        Text("Pulsing motion calls attention to live workflows while honoring Reduce Motion.")
-                            .textStyle(.body)
-
-                        BorderAnimationCard()
-                    }
-                }
-
-                SectionCard(title: "Shimmer skeleton") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
-                        Text("shimmering(active:color:duration:)")
-                            .textStyle(.titleSecondary)
-
-                        Text("Use the shimmer modifier on badges or placeholders to indicate background work.")
-                            .textStyle(.body)
-
-                        ShimmerSkeletonList(isActive: isShimmerEnabled)
-
-                        Toggle("Active shimmer", isOn: $isShimmerEnabled)
-                            .toggleStyle(.switch)
-                            .frame(maxWidth: 220, alignment: .leading)
-                    }
-                }
-
-                SectionCard(title: "Grid animation overlay") {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
-                        Text("TaskCardGridOverlay")
-                            .textStyle(.titleSecondary)
-
-                        Text("A CAD-like scan animates whenever the overlay becomes active, ideal for fabrication tasks.")
-                            .textStyle(.body)
-
-                        GridAnimationCard(isActive: isGridActive, showsIntersections: showsGridDots)
-
-                        Toggle("Show intersection dots", isOn: $showsGridDots)
-                            .toggleStyle(.switch)
-                            .frame(maxWidth: 220, alignment: .leading)
+                Group {
+                    switch selectedSection {
+                    case .colors:
+                        colorsShowcase
+                    case .utilities:
+                        utilitiesShowcase
+                    case .motion:
+                        motionShowcase
                     }
                 }
             }
@@ -112,21 +79,152 @@ struct DesignSystemDemoView: View {
         }
         .background(DesignColor.background.ignoresSafeArea())
         .navigationTitle("Design System")
-        .task {
-            await animateGridOverlayLoop()
+        .onDisappear {
+            gridAnimationTask?.cancel()
+            gridAnimationTask = nil
         }
     }
 
-    @MainActor
-    private func animateGridOverlayLoop() async {
-        while !Task.isCancelled {
+    private var colorsShowcase: some View {
+        VStack(spacing: DesignSystem.Spacing.large.value) {
+            SectionCard(title: "Core palette") {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 150), spacing: DesignSystem.Spacing.small.value)],
+                    spacing: DesignSystem.Spacing.small.value
+                ) {
+                    ForEach(colorTokens) { descriptor in
+                        ColorSwatch(descriptor: descriptor)
+                    }
+                }
+            }
+
+            SectionCard(title: "Text tokens") {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 150), spacing: DesignSystem.Spacing.small.value)],
+                    spacing: DesignSystem.Spacing.small.value
+                ) {
+                    ForEach(textColorTokens) { descriptor in
+                        ColorSwatch(descriptor: descriptor)
+                    }
+                }
+            }
+        }
+    }
+
+    private var utilitiesShowcase: some View {
+        VStack(spacing: DesignSystem.Spacing.large.value) {
+            SectionCard(title: "Typography scale") {
+                VStack(spacing: DesignSystem.Spacing.small.value) {
+                    ForEach(fontTokens) { descriptor in
+                        FontTokenCard(descriptor: descriptor)
+                    }
+                }
+            }
+
+            SectionCard(title: "Shadow scale") {
+                Text("Each card applies a different \"DesignSystem.Shadow\" token to highlight depth tiers.")
+                    .textStyle(.body)
+
+                LazyVGrid(
+                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                    spacing: DesignSystem.Spacing.small.value
+                ) {
+                    ForEach(shadowTokens) { descriptor in
+                        ShadowCard(descriptor: descriptor)
+                    }
+                }
+            }
+        }
+    }
+
+    private var motionShowcase: some View {
+        VStack(spacing: DesignSystem.Spacing.large.value) {
+            SectionCard(title: "Border animation") {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("animatedBorder(color:lineWidth:cornerRadius:)")
+                        .textStyle(.titleSecondary)
+
+                    Text("Pulsing motion calls attention to live workflows while honoring Reduce Motion.")
+                        .textStyle(.body)
+
+                    BorderAnimationCard()
+                }
+            }
+
+            SectionCard(title: "Shimmer skeleton") {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("shimmering(active:color:duration:)")
+                        .textStyle(.titleSecondary)
+
+                    Text("Use the shimmer modifier on badges or placeholders to indicate background work.")
+                        .textStyle(.body)
+
+                    ShimmerSkeletonList(isActive: isShimmerEnabled)
+
+                    Toggle("Active shimmer", isOn: $isShimmerEnabled)
+                        .toggleStyle(.switch)
+                        .frame(maxWidth: 220, alignment: .leading)
+                }
+            }
+
+            SectionCard(title: "Grid animation overlay") {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small.value) {
+                    Text("TaskCardGridOverlay")
+                        .textStyle(.titleSecondary)
+
+                    Text("A CAD-like scan animates whenever the overlay becomes active, ideal for fabrication tasks.")
+                        .textStyle(.body)
+
+                    CTAButton(isLoading: isGridActive, action: triggerGridAnimation) {
+                        Label(isGridActive ? "Animating" : "Start grid animation", systemImage: isGridActive ? "waveform.path.ecg" : "play.fill")
+                    }
+                    .disabled(isGridActive)
+
+                    GridAnimationCard(isActive: isGridActive, showsIntersections: showsGridDots)
+
+                    Toggle("Show intersection dots", isOn: $showsGridDots)
+                        .toggleStyle(.switch)
+                        .frame(maxWidth: 220, alignment: .leading)
+                }
+            }
+        }
+    }
+
+    private func triggerGridAnimation() {
+        guard gridAnimationTask == nil else { return }
+
+        gridAnimationTask = Task { @MainActor in
             isGridActive = true
             try? await Task.sleep(nanoseconds: 2_200_000_000)
-
-            if Task.isCancelled { break }
-
             isGridActive = false
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            gridAnimationTask = nil
+        }
+    }
+}
+
+private enum DemoSection: String, CaseIterable, Identifiable {
+    case colors
+    case utilities
+    case motion
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .colors: return "Colors"
+        case .utilities: return "Utils"
+        case .motion: return "Animations"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .colors:
+            return "Color palette, status tokens, and text tones in light + dark."
+        case .utilities:
+            return "Typography scale paired with the design shadow catalog."
+        case .motion:
+            return "Border, shimmer, and the CAD-inspired grid overlay animations."
         }
     }
 }
@@ -158,8 +256,6 @@ private struct SectionCard<Content: View>: View {
 
 @MainActor
 private struct ColorSwatch: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     let descriptor: ColorTokenDescriptor
 
     var body: some View {
@@ -174,7 +270,43 @@ private struct ColorSwatch: View {
 
             Text(descriptor.name)
                 .textStyle(.titleSecondary)
+
+            Text(descriptor.detail)
+                .textStyle(.subtitleMuted)
+                .foregroundStyle(DesignColor.Text.secondary)
         }
+    }
+}
+
+private struct FontTokenCard: View {
+    let descriptor: FontTokenDescriptor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.tight.value) {
+            HStack {
+                Text(descriptor.name)
+                    .textStyle(.titleSecondary)
+                Spacer()
+                Text(descriptor.detail)
+                    .textStyle(.subtitleMuted)
+                    .foregroundStyle(DesignColor.Text.secondary)
+            }
+
+            Text(descriptor.preview)
+                .font(descriptor.font)
+                .foregroundStyle(DesignColor.Text.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(DesignSystem.Spacing.medium.insets)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg.value)
+                .fill(DesignColor.Surface.popover)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg.value)
+                .strokeBorder(DesignColor.border.opacity(0.35), lineWidth: DesignSystem.BorderWidth.thin.value)
+        )
     }
 }
 
@@ -202,6 +334,37 @@ private struct ShadowCard: View {
                 .fill(DesignColor.Surface.card)
         )
         .designShadow(descriptor.token)
+    }
+}
+
+private struct CTAButton<Label: View>: View {
+    let isLoading: Bool
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: DesignSystem.Spacing.small.value) {
+                label()
+                    .textStyle(.titleSecondary)
+                    .foregroundStyle(DesignColor.Text.onAccent)
+
+                Spacer()
+
+                if isLoading {
+                    ProgressView()
+                        .tint(DesignColor.Text.onAccent)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.medium.value)
+            .padding(.vertical, DesignSystem.Spacing.small.value)
+            .frame(maxWidth: .infinity)
+            .background(
+                Capsule()
+                    .fill(DesignColor.accent)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -325,6 +488,14 @@ private struct ColorTokenDescriptor: Identifiable {
         self.color = color
         self.detail = detail
     }
+}
+
+private struct FontTokenDescriptor: Identifiable {
+    let id = UUID()
+    let name: String
+    let preview: String
+    let font: Font
+    let detail: String
 }
 
 private struct ShadowTokenDescriptor: Identifiable {
