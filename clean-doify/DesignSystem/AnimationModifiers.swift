@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public enum ShimmerActivation {
     case cooldown(TimeInterval)
@@ -22,12 +23,12 @@ public extension View {
     ///   When Reduce Motion is enabled the shimmer renders as a static highlight to maintain context
     ///   without animation.
     func shimmer(
-        activation: ShimmerActivation = .cooldown(1.4),
+        activation: ShimmerActivation = .cooldown(0),
         tint: Color? = nil,
         highlightTint: Color? = nil,
         cornerRadius: CGFloat? = nil,
-        shimmerWidthRatio: CGFloat = 0.55,
-        animationDuration: TimeInterval = 1.35
+        shimmerWidthRatio: CGFloat = 2.0,
+        animationDuration: TimeInterval = 3.0
     ) -> some View {
         modifier(
             ShimmerModifier(
@@ -35,7 +36,7 @@ public extension View {
                 tint: tint,
                 highlightTint: highlightTint,
                 cornerRadius: cornerRadius,
-                shimmerWidthRatio: max(0.2, min(shimmerWidthRatio, 1.2)),
+                shimmerWidthRatio: max(0.5, min(shimmerWidthRatio, 3)),
                 animationDuration: max(animationDuration, 0.1)
             )
         )
@@ -90,7 +91,7 @@ private struct ShimmerModifier: ViewModifier {
         content.overlay {
             ShimmerOverlay(
                 activation: activation,
-                tint: tint ?? DesignColor.Surface.muted.opacity(0.55),
+                tint: tint ?? DesignColor.Surface.card.opacity(0.12),
                 highlightTint: highlightTint ?? DesignColor.Surface.card,
                 cornerRadius: cornerRadius,
                 shimmerWidthRatio: shimmerWidthRatio,
@@ -112,44 +113,35 @@ private struct ShimmerOverlay: View {
     let reduceMotion: Bool
 
     @State private var cycleStartTime: TimeInterval?
-    @State private var nextScheduledStart: TimeInterval?
+    @State private var activeCycleID: UUID?
+    @State private var pendingStartTask: Task<Void, Never>?
 
     var body: some View {
         GeometryReader { proxy in
-            Group {
-                if reduceMotion {
-                    ShimmerCanvas(
-                        tint: tint,
-                        highlightTint: highlightTint,
-                        cornerRadius: cornerRadius,
-                        shimmerWidthRatio: shimmerWidthRatio,
-                        phase: 0.5,
-                        isAnimating: false
-                    )
-                } else {
-                    TimelineView(.animation) { timeline in
-                        let progress = animationProgress(for: timeline.date)
-
-                        ShimmerCanvas(
-                            tint: tint,
-                            highlightTint: highlightTint,
-                            cornerRadius: cornerRadius,
-                            shimmerWidthRatio: shimmerWidthRatio,
-                            phase: progress ?? 0,
-                            isAnimating: progress != nil
-                        )
-                    }
+            ShimmerRenderer(
+                tint: tint,
+                highlightTint: highlightTint,
+                cornerRadius: cornerRadius,
+                shimmerWidthRatio: shimmerWidthRatio,
+                animationDuration: animationDuration,
+                reduceMotion: reduceMotion,
+                cycleID: reduceMotion ? nil : activeCycleID,
+                onCycleCompleted: reduceMotion ? nil : {
+                    completeCycle(at: Date().timeIntervalSinceReferenceDate)
                 }
-            }
+            )
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .allowsHitTesting(false)
         .onAppear { configureInitialSchedule() }
+        .onDisappear { tearDownScheduling() }
         .onChange(of: reduceMotion) { _ in configureInitialSchedule() }
         .onChange(of: manualBinding?.wrappedValue ?? false) { newValue in
             guard manualBinding != nil else { return }
             if newValue {
-                scheduleNextCycle(at: Date().timeIntervalSinceReferenceDate)
+                startCycle(at: Date().timeIntervalSinceReferenceDate)
+            } else {
+                tearDownScheduling()
             }
         }
     }
@@ -160,140 +152,244 @@ private struct ShimmerOverlay: View {
     }
 
     private func configureInitialSchedule() {
-        guard !reduceMotion else {
-            cycleStartTime = nil
-            nextScheduledStart = nil
-            return
-        }
+        tearDownScheduling()
+
+        guard !reduceMotion else { return }
 
         switch activation {
-        case .cooldown:
-            if cycleStartTime == nil, nextScheduledStart == nil {
-                scheduleNextCycle(at: Date().timeIntervalSinceReferenceDate)
+        case let .cooldown(interval):
+            guard activeCycleID == nil else { return }
+            if interval <= 0 {
+                startCycle(at: Date().timeIntervalSinceReferenceDate)
+            } else {
+                scheduleNextCycle(after: interval)
             }
         case let .manual(binding):
             if binding.wrappedValue {
-                scheduleNextCycle(at: Date().timeIntervalSinceReferenceDate)
-            } else {
-                cycleStartTime = nil
-                nextScheduledStart = nil
+                startCycle(at: Date().timeIntervalSinceReferenceDate)
             }
         }
     }
 
-    private func animationProgress(for date: Date) -> Double? {
-        guard !reduceMotion else { return nil }
-
-        let reference = date.timeIntervalSinceReferenceDate
-
-        if let start = cycleStartTime {
-            let elapsed = reference - start
-            if elapsed >= animationDuration {
-                completeCycle(at: reference)
-                return 1
-            }
-
-            return max(0, min(elapsed / animationDuration, 1))
-        }
-
-        if let nextStart = nextScheduledStart, reference >= nextStart {
-            startCycle(at: reference)
-            return 0
-        }
-
-        return nil
+    private func tearDownScheduling() {
+        pendingStartTask?.cancel()
+        pendingStartTask = nil
+        cycleStartTime = nil
+        activeCycleID = nil
     }
 
     private func startCycle(at reference: TimeInterval) {
-        guard cycleStartTime == nil else { return }
-        DispatchQueue.main.async {
-            cycleStartTime = reference
-            nextScheduledStart = nil
-        }
+        guard !reduceMotion, activeCycleID == nil else { return }
+        cycleStartTime = reference
+        activeCycleID = UUID()
     }
 
     private func completeCycle(at reference: TimeInterval) {
-        DispatchQueue.main.async {
-            cycleStartTime = nil
+        guard cycleStartTime != nil else { return }
+        cycleStartTime = nil
+        activeCycleID = nil
 
-            switch activation {
-            case let .cooldown(interval):
-                scheduleNextCycle(at: reference + max(interval, 0))
-            case let .manual(binding):
-                if binding.wrappedValue {
-                    binding.wrappedValue = false
-                }
-                nextScheduledStart = nil
+        switch activation {
+        case let .cooldown(interval):
+            scheduleNextCycle(after: max(interval, 0))
+        case let .manual(binding):
+            if binding.wrappedValue {
+                binding.wrappedValue = false
             }
         }
     }
 
-    private func scheduleNextCycle(at time: TimeInterval) {
-        DispatchQueue.main.async {
-            nextScheduledStart = time
+    private func scheduleNextCycle(after interval: TimeInterval) {
+        pendingStartTask?.cancel()
+
+        guard interval > 0 else {
+            startCycle(at: Date().timeIntervalSinceReferenceDate)
+            return
+        }
+
+        pendingStartTask = Task {
+            try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                startCycle(at: Date().timeIntervalSinceReferenceDate)
+            }
         }
     }
 }
 
-private struct ShimmerCanvas: View {
+private struct ShimmerRenderer: UIViewRepresentable {
     let tint: Color
     let highlightTint: Color
     let cornerRadius: CGFloat?
     let shimmerWidthRatio: CGFloat
-    let phase: Double
-    let isAnimating: Bool
+    let animationDuration: TimeInterval
+    let reduceMotion: Bool
+    let cycleID: UUID?
+    let onCycleCompleted: (() -> Void)?
 
-    var body: some View {
-        Canvas { context, size in
-            guard size.width > 0, size.height > 0 else { return }
+    func makeUIView(context: Context) -> ShimmerGradientView {
+        ShimmerGradientView()
+    }
 
-            let rect = CGRect(origin: .zero, size: size)
-            let basePath = path(for: rect)
+    func updateUIView(_ uiView: ShimmerGradientView, context: Context) {
+        uiView.apply(
+            tint: UIColor(tint),
+            highlight: UIColor(highlightTint),
+            cornerRadius: cornerRadius,
+            shimmerWidthRatio: shimmerWidthRatio,
+            animationDuration: animationDuration,
+            reduceMotion: reduceMotion
+        )
 
-            context.fill(basePath, with: .color(tint))
-            context.clip(to: basePath, style: .init(eoFill: false, antialiased: true))
+        guard !reduceMotion else {
+            context.coordinator.activeCycleID = nil
+            uiView.stopShimmer(resetPosition: false)
+            return
+        }
 
-            let clampedPhase = min(max(phase, 0), 1)
-            let normalizedPhase = isAnimating ? clampedPhase : 0.5
+        if context.coordinator.activeCycleID != cycleID {
+            context.coordinator.activeCycleID = cycleID
 
-            let minimumWidth = size.width * 0.35
-            let highlightWidth = max(size.width * shimmerWidthRatio, minimumWidth)
-            let travelDistance = size.width + highlightWidth
-            let xPosition = -highlightWidth + travelDistance * normalizedPhase
-
-            let highlightRect = CGRect(
-                x: xPosition,
-                y: -size.height * 0.15,
-                width: highlightWidth,
-                height: size.height * 1.3
-            )
-
-            let gradient = Gradient(stops: [
-                .init(color: tint.opacity(0), location: 0),
-                .init(color: highlightTint.opacity(0.22), location: 0.3),
-                .init(color: highlightTint.opacity(0.7), location: 0.5),
-                .init(color: highlightTint.opacity(0.22), location: 0.72),
-                .init(color: tint.opacity(0), location: 1)
-            ])
-
-            let start = CGPoint(x: highlightRect.minX, y: highlightRect.midY)
-            let end = CGPoint(x: highlightRect.maxX, y: highlightRect.midY)
-            let highlightPath = Path(highlightRect)
-
-            context.drawLayer { layer in
-                layer.fill(highlightPath, with: .linearGradient(gradient, startPoint: start, endPoint: end))
+            guard cycleID != nil, let onCycleCompleted else {
+                uiView.stopShimmer(resetPosition: true)
+                return
             }
 
-            let overlayOpacity = isAnimating ? 0.08 : 0.12
-            context.fill(basePath, with: .color(highlightTint.opacity(overlayOpacity)))
+            uiView.startShimmerCycle { onCycleCompleted() }
         }
     }
 
-    private func path(for rect: CGRect) -> Path {
-        if let cornerRadius {
-            return Path(roundedRect: rect, cornerRadius: cornerRadius)
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator {
+        var activeCycleID: UUID?
+    }
+}
+
+private final class ShimmerGradientView: UIView, CAAnimationDelegate {
+    private enum Constants {
+        static let shimmerAnimationKey = "glow-shimmer"
+    }
+
+    private var shimmerWidthRatio: CGFloat = 2
+    private var animationDuration: TimeInterval = 3
+    private var reduceMotion = false
+    private var completion: (() -> Void)?
+
+    private let bandLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        layer.startPoint = CGPoint(x: 0, y: 0.5)
+        layer.endPoint = CGPoint(x: 1, y: 0.5)
+        layer.locations = [0, 0.45, 0.5, 0.55, 1].map { NSNumber(value: $0) }
+        return layer
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.masksToBounds = true
+        isUserInteractionEnabled = false
+        bandLayer.delegate = self
+        layer.addSublayer(bandLayer)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func apply(
+        tint: UIColor,
+        highlight: UIColor,
+        cornerRadius: CGFloat?,
+        shimmerWidthRatio: CGFloat,
+        animationDuration: TimeInterval,
+        reduceMotion: Bool
+    ) {
+        layer.cornerRadius = cornerRadius ?? 0
+        layer.backgroundColor = tint.cgColor
+        bandLayer.colors = highlightGradientColors(from: highlight)
+        self.shimmerWidthRatio = shimmerWidthRatio
+        self.animationDuration = animationDuration
+        self.reduceMotion = reduceMotion
+        if reduceMotion {
+            stopShimmer(resetPosition: false)
+            positionBandAtRest()
         }
-        return Path(rect)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBandGeometry()
+    }
+
+    func startShimmerCycle(completion: @escaping () -> Void) {
+        guard !reduceMotion else {
+            completion()
+            return
+        }
+
+        self.completion = completion
+        setNeedsLayout()
+        layoutIfNeeded()
+        bandLayer.removeAnimation(forKey: Constants.shimmerAnimationKey)
+        resetBandToLeadingEdge()
+
+        let targetPosition = bounds.width + bandLayer.bounds.width / 2
+        let animation = CABasicAnimation(keyPath: "position.x")
+        animation.fromValue = bandLayer.position.x
+        animation.toValue = targetPosition
+        animation.duration = animationDuration
+        animation.timingFunction = CAMediaTimingFunction(name: .linear)
+        animation.delegate = self
+        animation.isRemovedOnCompletion = true
+
+        bandLayer.add(animation, forKey: Constants.shimmerAnimationKey)
+        bandLayer.position.x = targetPosition
+    }
+
+    func stopShimmer(resetPosition: Bool) {
+        bandLayer.removeAnimation(forKey: Constants.shimmerAnimationKey)
+        completion = nil
+        if resetPosition {
+            resetBandToLeadingEdge()
+        }
+    }
+
+    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+        guard flag else { return }
+        DispatchQueue.main.async {
+            self.completion?()
+            self.completion = nil
+            self.resetBandToLeadingEdge()
+        }
+    }
+
+    private func highlightGradientColors(from highlight: UIColor) -> [CGColor] {
+        [
+            highlight.withAlphaComponent(0).cgColor,
+            highlight.withAlphaComponent(0.12).cgColor,
+            highlight.withAlphaComponent(0.2).cgColor,
+            highlight.withAlphaComponent(0.12).cgColor,
+            highlight.withAlphaComponent(0).cgColor
+        ]
+    }
+
+    private func updateBandGeometry() {
+        let bandWidth = max(bounds.width * shimmerWidthRatio, 1)
+        let bandHeight = max(bounds.height * 1.5, 1)
+        bandLayer.bounds = CGRect(x: 0, y: 0, width: bandWidth, height: bandHeight)
+        if reduceMotion {
+            positionBandAtRest()
+        } else {
+            resetBandToLeadingEdge()
+        }
+    }
+
+    private func resetBandToLeadingEdge() {
+        bandLayer.position = CGPoint(x: -bandLayer.bounds.width / 2, y: bounds.midY)
+    }
+
+    private func positionBandAtRest() {
+        bandLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
     }
 }
 
